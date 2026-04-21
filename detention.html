@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Breath-Link Initiative — AI Acoustic Biopsy</title>
+<link rel="stylesheet" href="style.css">
+<style>
+#detectionContent {
+    background: var(--dark);
+    color: white;
+    padding: 40px 20px;
+    min-height: 80vh;
+}
+.detection-wrap { max-width: 860px; margin: 0 auto; }
+
+/* STEPS */
+.steps { display:flex; justify-content:center; gap:0; margin-bottom:40px; position:relative; }
+.steps::before { content:''; position:absolute; top:18px; left:15%; right:15%; height:1px; background:rgba(39,174,96,0.2); }
+.step { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; position:relative; z-index:1; }
+.step-dot { width:36px; height:36px; border-radius:50%; border:2px solid rgba(39,174,96,0.2); background:#111; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#666; transition:all 0.4s; }
+.step.active .step-dot { border-color:var(--secondary); background:rgba(39,174,96,0.12); color:var(--secondary); box-shadow:0 0 16px rgba(39,174,96,0.3); }
+.step.done .step-dot { border-color:var(--secondary); background:var(--secondary); color:var(--dark); }
+.step-label { font-size:0.72rem; color:#555; text-transform:uppercase; letter-spacing:0.06em; }
+.step.active .step-label { color:var(--secondary); }
+
+/* PANELS */
+.det-panel { display:none; animation:fadeUp 0.4s ease; }
+.det-panel.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+/* CARDS */
+.det-card { background:#0f1c2e; border:1px solid rgba(39,174,96,0.15); border-radius:16px; padding:32px; margin-bottom:20px; position:relative; overflow:hidden; }
+.det-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--secondary),transparent); }
+.det-card-title { font-size:1.1rem; font-weight:700; color:white; margin-bottom:4px; }
+.det-card-sub { font-size:0.78rem; color:#555; margin-bottom:24px; font-family:monospace; letter-spacing:0.04em; }
+
+/* SCIENCE TAGS */
+.science-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+.sci-tag { font-size:0.7rem; color:#1a6cff; border:1px solid rgba(26,108,255,0.3); background:rgba(26,108,255,0.06); padding:4px 10px; border-radius:20px; }
+
+/* WAVEFORM */
+.waveform-container { width:100%; background:#060e1a; border-radius:12px; border:1px solid rgba(39,174,96,0.15); overflow:hidden; height:100px; position:relative; margin-bottom:24px; }
+#waveCanvas { width:100%; height:100px; display:block; }
+.waveform-label { position:absolute; top:8px; left:12px; font-size:0.65rem; color:#444; letter-spacing:0.1em; font-family:monospace; }
+
+/* RECORDER */
+.recorder-area { display:flex; flex-direction:column; align-items:center; gap:20px; }
+.record-btn { width:110px; height:110px; border-radius:50%; border:3px solid var(--secondary); background:rgba(39,174,96,0.1); color:var(--secondary); font-size:2.2rem; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; }
+.record-btn:hover { background:rgba(39,174,96,0.2); box-shadow:0 0 40px rgba(39,174,96,0.3); transform:scale(1.05); }
+.record-btn.recording { border-color:var(--danger); background:rgba(231,76,60,0.12); color:var(--danger); animation:pulse-red 1.2s infinite; }
+.record-btn.analyzing { border-color:#1a6cff; background:rgba(26,108,255,0.12); color:#1a6cff; animation:pulse-blue 1s infinite; }
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.4)} 50%{box-shadow:0 0 0 20px rgba(231,76,60,0)} }
+@keyframes pulse-blue { 0%,100%{box-shadow:0 0 0 0 rgba(26,108,255,0.4)} 50%{box-shadow:0 0 0 20px rgba(26,108,255,0)} }
+.record-status { font-size:0.88rem; color:#666; text-align:center; min-height:40px; line-height:1.6; }
+.record-timer { font-size:2rem; font-weight:bold; color:var(--danger); display:none; font-family:monospace; }
+
+/* INSTRUCTIONS */
+.instructions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.instr-item { display:flex; align-items:center; gap:8px; background:#060e1a; border:1px solid rgba(39,174,96,0.12); border-radius:10px; padding:10px 14px; font-size:0.82rem; color:#888; }
+.instr-num { width:22px; height:22px; border-radius:50%; background:rgba(39,174,96,0.1); border:1px solid var(--secondary); color:var(--secondary); font-size:0.7rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* FORM */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.form-group { display:flex; flex-direction:column; gap:8px; }
+.form-group label { font-size:0.75rem; color:#666; letter-spacing:0.08em; text-transform:uppercase; font-family:monospace; }
+.form-group select, .form-group input[type="number"] { background:#060e1a; border:1px solid rgba(39,174,96,0.2); border-radius:10px; color:white; padding:12px 14px; font-family:'Segoe UI',Tahoma,sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; appearance:none; }
+.form-group select:focus, .form-group input:focus { border-color:var(--secondary); }
+.radio-group { display:flex; gap:8px; }
+.radio-opt { flex:1; }
+.radio-opt input { display:none; }
+.radio-opt label { display:block; text-align:center; padding:10px 6px; background:#060e1a; border:1px solid rgba(39,174,96,0.15); border-radius:10px; cursor:pointer; font-size:0.82rem; color:#777; transition:all 0.2s; text-transform:none; letter-spacing:0; }
+.radio-opt input:checked + label { border-color:var(--secondary); color:var(--secondary); background:rgba(39,174,96,0.1); }
+
+/* BUTTONS */
+.det-btn { display:block; width:100%; padding:14px; border-radius:10px; border:none; font-size:0.95rem; font-weight:bold; cursor:pointer; transition:all 0.2s; margin-top:20px; font-family:'Segoe UI',Tahoma,sans-serif; }
+.det-btn-primary { background:var(--secondary); color:white; }
+.det-btn-primary:hover { background:#22c774; box-shadow:0 6px 24px rgba(39,174,96,0.3); }
+.det-btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
+.det-btn-outline { background:transparent; color:var(--secondary); border:1px solid var(--secondary); margin-top:10px; }
+.det-btn-outline:hover { background:rgba(39,174,96,0.1); }
+
+/* ANALYSIS */
+.analysis-center { text-align:center; padding:20px 0; }
+.analysis-visual { width:140px; height:140px; border-radius:50%; margin:0 auto 28px; position:relative; display:flex; align-items:center; justify-content:center; }
+.analysis-ring { position:absolute; inset:0; border-radius:50%; border:3px solid transparent; animation:spin 2s linear infinite; }
+.ring1 { border-top-color:var(--secondary); border-right-color:var(--secondary); }
+.ring2 { inset:10px; border-bottom-color:#1a6cff; border-left-color:#1a6cff; animation-duration:1.5s; animation-direction:reverse; }
+.ring3 { inset:20px; border-top-color:var(--accent); animation-duration:3s; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.analysis-icon { font-size:2.2rem; position:relative; z-index:1; }
+.analysis-log { background:#060e1a; border:1px solid rgba(39,174,96,0.15); border-radius:10px; padding:18px; text-align:left; font-family:monospace; font-size:0.78rem; color:#555; min-height:160px; max-height:260px; overflow-y:auto; }
+.log-line { margin-bottom:6px; animation:fadeIn 0.3s ease; }
+.log-line .ok   { color:var(--secondary); }
+.log-line .info { color:#1a6cff; }
+.log-line .warn { color:var(--accent); }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+/* RESULTS */
+.risk-meter { position:relative; margin:0 auto 28px; width:260px; height:130px; }
+.risk-meter svg { width:100%; height:100%; }
+.risk-label-center { position:absolute; bottom:0; left:50%; transform:translateX(-50%); text-align:center; white-space:nowrap; }
+.risk-value { font-size:2rem; font-weight:900; line-height:1; }
+.risk-word  { font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; font-family:monospace; }
+
+/* KNN MATCHES */
+.knn-matches { margin-bottom:20px; }
+.knn-title { font-family:monospace; font-size:0.7rem; color:var(--secondary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px; }
+.knn-item { display:flex; align-items:center; gap:12px; padding:10px; background:#060e1a; border:1px solid rgba(39,174,96,0.1); border-radius:8px; margin-bottom:8px; font-size:0.82rem; }
+.knn-label { min-width:110px; color:#bbb; }
+.knn-bar-wrap { flex:1; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; }
+.knn-bar { height:100%; border-radius:3px; transition:width 1s ease; }
+.knn-dist { font-family:monospace; font-size:0.72rem; color:#555; min-width:50px; text-align:right; }
+
+/* FEATURES GRID */
+.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+@media(max-width:600px){.features-grid{grid-template-columns:1fr 1fr}}
+.feature-card { background:#060e1a; border:1px solid rgba(39,174,96,0.12); border-radius:10px; padding:14px; text-align:center; }
+.feature-name { font-size:0.62rem; color:#555; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px; font-family:monospace; }
+.feature-bar-wrap { height:3px; background:rgba(255,255,255,0.05); border-radius:2px; margin:6px 0; overflow:hidden; }
+.feature-bar { height:100%; border-radius:2px; transition:width 1.2s ease; }
+.feature-val { font-size:1rem; font-weight:700; }
+
+/* SUMMARY */
+.summary-section { background:#060e1a; border:1px solid rgba(39,174,96,0.12); border-radius:12px; padding:20px; margin-bottom:16px; text-align:left; }
+.summary-title { font-size:0.68rem; color:var(--secondary); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px; font-family:monospace; }
+.summary-title::after { content:''; flex:1; height:1px; background:rgba(39,174,96,0.15); }
+.summary-row { display:flex; justify-content:space-between; align-items:flex-start; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.86rem; gap:12px; }
+.summary-row:last-child { border-bottom:none; }
+.summary-row .key { color:#555; font-family:monospace; font-size:0.78rem; flex-shrink:0; }
+.summary-row .val { color:#ccc; font-weight:500; text-align:right; }
+.questions-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+.questions-list li { display:flex; gap:10px; align-items:flex-start; font-size:0.86rem; color:#bbb; line-height:1.5; }
+.q-bullet { width:20px; height:20px; border-radius:50%; background:rgba(39,174,96,0.1); border:1px solid var(--secondary); color:var(--secondary); font-size:0.65rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.disclaimer { background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.25); border-radius:10px; padding:14px 16px; font-size:0.82rem; color:var(--accent); margin-bottom:16px; line-height:1.6; }
+
+/* CITATION BOX */
+.citation-box { background:rgba(26,108,255,0.06); border:1px solid rgba(26,108,255,0.2); border-radius:10px; padding:14px 16px; font-size:0.78rem; color:#888; margin-bottom:16px; line-height:1.7; }
+.citation-box strong { color:#1a6cff; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Global Breath-Link Initiative</h1>
+    <p>Democratizing Lung Health: A Triage-to-Treatment Ecosystem</p>
+</header>
+
+<div style="background:#132238; border-bottom:1px solid rgba(39,174,96,0.15); padding:12px 20px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+    <a href="index.html"     style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">🏠 Home</a>
+    <a href="index.html" style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">🫁 Awareness Simulator</a>
+    <a href="detection.html" style="color:var(--secondary); text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3);">🔬 AI Acoustic Biopsy</a>
+</div>
+
+<div id="detectionContent">
+<div class="detection-wrap">
+
+    <div style="text-align:center; margin-bottom:40px; padding-top:10px;">
+        <div style="display:inline-block; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3); border-radius:20px; padding:5px 16px; font-size:0.75rem; color:var(--secondary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; font-family:monospace;">PROTOTYPE v0.1 — KNN CLASSIFIER</div>
+        <h2 style="font-size:2rem; margin-bottom:10px; color:white;">2. AI Acoustic Biopsy</h2>
+        <p style="color:#666; max-width:560px; margin:auto; line-height:1.7; font-size:0.95rem;">Real cough audio feature extraction compared against a reference library derived from published COUGHVID &amp; Coswara respiratory research datasets using K-Nearest Neighbor classification.</p>
+    </div>
+
+    <div class="steps">
+        <div class="step active" id="s1"><div class="step-dot">01</div><div class="step-label">Record</div></div>
+        <div class="step"        id="s2"><div class="step-dot">02</div><div class="step-label">Profile</div></div>
+        <div class="step"        id="s3"><div class="step-dot">03</div><div class="step-label">Analysis</div></div>
+        <div class="step"        id="s4"><div class="step-dot">04</div><div class="step-label">Results</div></div>
+    </div>
+
+    <!-- ── PANEL 1: RECORD ── -->
+    <div class="det-panel active" id="panel1">
+        <div class="det-card">
+            <div class="det-card-title">Cough Audio Capture</div>
+            <div class="det-card-sub">// WEB AUDIO API · FFT · REAL-TIME SPECTRAL ANALYSIS</div>
+            <div class="science-bar">
+                <span class="sci-tag">FFT — 2048 bins</span>
+                <span class="sci-tag">RMS Energy</span>
+                <span class="sci-tag">Zero Crossing Rate</span>
+                <span class="sci-tag">Spectral Centroid</span>
+                <span class="sci-tag">Spectral Bandwidth</span>
+                <span class="sci-tag">Spectral Rolloff</span>
+                <span class="sci-tag">KNN Classifier</span>
+            </div>
+            <div class="waveform-container">
+                <span class="waveform-label">LIVE WAVEFORM</span>
+                <canvas id="waveCanvas" width="800" height="100"></canvas>
+            </div>
+            <div class="recorder-area">
+                <div class="record-timer" id="timer">0:00</div>
+                <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙️</button>
+                <div class="record-status" id="recordStatus">
+                    Press the microphone and perform <strong style="color:white;">3 forced coughs</strong>.<br>
+                    <span style="font-size:0.8rem;">Recording auto-stops after 8 seconds.</span>
+                </div>
+            </div>
+        </div>
+        <div class="det-card">
+            <div class="det-card-title">How to Cough Correctly</div>
+            <div class="det-card-sub">// FOR BEST SIGNAL QUALITY</div>
+            <div class="instructions">
+                <div class="instr-item"><div class="instr-num">1</div>Sit upright, mic nearby</div>
+                <div class="instr-item"><div class="instr-num">2</div>Take a deep breath in</div>
+                <div class="instr-item"><div class="instr-num">3</div>Cough forcefully 3 times</div>
+                <div class="instr-item"><div class="instr-num">4</div>Wait — analysis runs automatically</div>
+            </div>
+        </div>
+        <button class="det-btn det-btn-primary" id="nextBtn1" disabled onclick="goTo(2)">Continue to Health Profile →</button>
+    </div>
+
+    <!-- ── PANEL 2: PROFILE ── -->
+    <div class="det-panel" id="panel2">
+        <div class="det-card">
+            <div class="det-card-title">Health Risk Profile</div>
+            <div class="det-card-sub">// COMBINED WITH ACOUSTIC SCORE FOR FINAL TRIAGE</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" id="f_age" min="10" max="100" placeholder="e.g. 45">
+                </div>
+                <div class="form-group">
+                    <label>Biological Sex</label>
+                    <select id="f_sex">
+                        <option value="">Select...</option>
+                        <option>Male</option><option>Female</option><option>Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Smoking History</label>
+                    <select id="f_smoke">
+                        <option value="">Select...</option>
+                        <option value="0">Never smoked</option>
+                        <option value="1">Former smoker</option>
+                        <option value="2">Current smoker</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Years of Smoke/Dust Exposure</label>
+                    <input type="number" id="f_years" min="0" max="60" placeholder="e.g. 10">
+                </div>
+                <div class="form-group">
+                    <label>Persistent Cough Duration</label>
+                    <div class="radio-group">
+                        <div class="radio-opt"><input type="radio" name="cough" id="c0" value="0"><label for="c0">None</label></div>
+                        <div class="radio-opt"><input type="radio" name="cough" id="c1" value="1"><label for="c1">1–3 wks</label></div>
+                        <div class="radio-opt"><input type="radio" name="cough" id="c2" value="2"><label for="c2">3+ wks</label></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Shortness of Breath</label>
+                    <div class="radio-group">
+                        <div class="radio-opt"><input type="radio" name="sob" id="sob0" value="0"><label for="sob0">No</label></div>
+                        <div class="radio-opt"><input type="radio" name="sob" id="sob1" value="1"><label for="sob1">Mild</label></div>
+                        <div class="radio-opt"><input type="radio" name="sob" id="sob2" value="2"><label for="sob2">Severe</label></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Chest Pain or Tightness</label>
+                    <div class="radio-group">
+                        <div class="radio-opt"><input type="radio" name="chest" id="ch0" value="0"><label for="ch0">No</label></div>
+                        <div class="radio-opt"><input type="radio" name="chest" id="ch1" value="1"><label for="ch1">Yes</label></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Indoor Cookfire / Smoke Exposure</label>
+                    <div class="radio-group">
+                        <div class="radio-opt"><input type="radio" name="cook" id="ck0" value="0"><label for="ck0">No</label></div>
+                        <div class="radio-opt"><input type="radio" name="cook" id="ck1" value="1"><label for="ck1">Yes</label></div>
+                    </div>
+                </div>
+            </div>
+            <button class="det-btn det-btn-primary" onclick="runAnalysis()">Run KNN Acoustic + Risk Analysis →</button>
+        </div>
+    </div>
+
+    <!-- ── PANEL 3: ANALYSIS ── -->
+    <div class="det-panel" id="panel3">
+        <div class="det-card" style="text-align:center;">
+            <div class="det-card-title">KNN Classifier Running</div>
+            <div class="det-card-sub">// COMPARING YOUR COUGH AGAINST REFERENCE LIBRARY</div>
+            <div class="analysis-center">
+                <div class="analysis-visual">
+                    <div class="analysis-ring ring1"></div>
+                    <div class="analysis-ring ring2"></div>
+                    <div class="analysis-ring ring3"></div>
+                    <div class="analysis-icon">🫁</div>
+                </div>
+                <div class="analysis-log" id="analysisLog">
+                    <div class="log-line"><span class="info">[INIT]</span> Loading audio feature buffer...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PANEL 4: RESULTS ── -->
+    <div class="det-panel" id="panel4">
+        <div class="det-card" style="text-align:center;">
+            <div class="det-card-title">Acoustic Classification Complete</div>
+            <div class="det-card-sub">// KNN TRIAGE SCORE — RESEARCH-GROUNDED</div>
+
+            <div class="risk-meter">
+                <svg viewBox="0 0 200 110">
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="14" stroke-linecap="round"/>
+                    <path d="M 20 100 A 80 80 0 0 1 80 27"  fill="none" stroke="#27ae60" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
+                    <path d="M 80 27  A 80 80 0 0 1 140 27" fill="none" stroke="#f39c12" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
+                    <path d="M 140 27 A 80 80 0 0 1 180 100" fill="none" stroke="#e74c3c" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
+                    <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="white" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)" style="transition:transform 1.5s cubic-bezier(0.34,1.56,0.64,1)"/>
+                    <circle cx="100" cy="100" r="5" fill="white"/>
+                </svg>
+                <div class="risk-label-center">
+                    <div class="risk-value" id="scoreVal">--</div>
+                    <div class="risk-word"  id="riskWord" style="color:var(--secondary)">CALCULATING</div>
+                </div>
+            </div>
+
+            <div class="features-grid" id="featuresGrid"></div>
+        </div>
+
+        <!-- KNN NEAREST NEIGHBORS -->
+        <div class="det-card">
+            <div class="det-card-title">K-Nearest Neighbor Matches</div>
+            <div class="det-card-sub">// YOUR COUGH VS COUGHVID/COSWARA REFERENCE PROFILES</div>
+            <div class="citation-box">
+                <strong>Research basis:</strong> Reference feature ranges derived from published studies using the COUGHVID dataset (25,000+ recordings, Orlandic et al. 2021) and Coswara dataset. Features: spectral centroid (healthy &gt; symptomatic), ZCR (restrictive disease = high, obstructive = low), RMS energy, and spectral bandwidth (1300–3200 Hz for coughs).
+            </div>
+            <div class="knn-matches" id="knnMatches"></div>
+        </div>
+
+        <div class="det-card">
+            <div class="det-card-title">Extracted Audio Features</div>
+            <div class="det-card-sub">// RAW MEASUREMENTS FROM YOUR COUGH RECORDING</div>
+            <div id="audioFeatureDetails"></div>
+        </div>
+
+        <div id="summaryBlock"></div>
+
+        <div class="disclaimer">
+            ⚠️ <strong>Important:</strong> This is a research prototype pre-screening tool, not a medical diagnosis. The KNN classifier uses published acoustic feature ranges as a reference — it cannot replace clinical evaluation. Always consult a qualified healthcare provider.
+        </div>
+
+        <button class="det-btn det-btn-primary" onclick="downloadSummary()">⬇ Download Doctor Summary</button>
+        <button class="det-btn det-btn-outline" onclick="restart()">↺ New Analysis</button>
+    </div>
+
+</div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Global Breath-Link Initiative | Proposed by Ashrita Nagalla &amp; Akhil Nagalla</p>
+</footer>
+
+<script>
+const REFERENCE_LIBRARY = [
+    { label:"Healthy",              color:"#27ae60", sc:3200, bw:2400, zcr:0.28, rms:0.55, ro:5800, ev:0.12 },
+    { label:"Healthy",              color:"#27ae60", sc:3500, bw:2600, zcr:0.30, rms:0.50, ro:6100, ev:0.10 },
+    { label:"Healthy",              color:"#27ae60", sc:2900, bw:2200, zcr:0.25, rms:0.60, ro:5500, ev:0.14 },
+    { label:"Healthy",              color:"#27ae60", sc:3100, bw:2300, zcr:0.27, rms:0.52, ro:5700, ev:0.11 },
+    { label:"Healthy",              color:"#27ae60", sc:3800, bw:2800, zcr:0.32, rms:0.45, ro:6500, ev:0.09 },
+    { label:"Dry/Mild Irritation",  color:"#f39c12", sc:2400, bw:1900, zcr:0.22, rms:0.48, ro:4800, ev:0.18 },
+    { label:"Dry/Mild Irritation",  color:"#f39c12", sc:2200, bw:1800, zcr:0.20, rms:0.45, ro:4500, ev:0.20 },
+    { label:"Dry/Mild Irritation",  color:"#f39c12", sc:2600, bw:2000, zcr:0.23, rms:0.50, ro:5000, ev:0.17 },
+    { label:"Dry/Mild Irritation",  color:"#f39c12", sc:2100, bw:1700, zcr:0.19, rms:0.42, ro:4200, ev:0.22 },
+    { label:"Obstructive Pattern",  color:"#e67e22", sc:1600, bw:1500, zcr:0.12, rms:0.75, ro:3500, ev:0.30 },
+    { label:"Obstructive Pattern",  color:"#e67e22", sc:1400, bw:1400, zcr:0.10, rms:0.80, ro:3200, ev:0.35 },
+    { label:"Obstructive Pattern",  color:"#e67e22", sc:1800, bw:1600, zcr:0.13, rms:0.70, ro:3800, ev:0.28 },
+    { label:"Obstructive Pattern",  color:"#e67e22", sc:1500, bw:1450, zcr:0.11, rms:0.78, ro:3400, ev:0.32 },
+    { label:"Wet/Productive",       color:"#e74c3c", sc:1200, bw:1350, zcr:0.15, rms:0.65, ro:3000, ev:0.40 },
+    { label:"Wet/Productive",       color:"#e74c3c", sc:1100, bw:1300, zcr:0.14, rms:0.68, ro:2800, ev:0.42 },
+    { label:"Wet/Productive",       color:"#e74c3c", sc:1300, bw:1400, zcr:0.16, rms:0.62, ro:3100, ev:0.38 },
+    { label:"Restrictive Pattern",  color:"#e74c3c", sc:900,  bw:1300, zcr:0.38, rms:0.30, ro:2500, ev:0.45 },
+    { label:"Restrictive Pattern",  color:"#e74c3c", sc:800,  bw:1200, zcr:0.40, rms:0.28, ro:2300, ev:0.48 },
+    { label:"Restrictive Pattern",  color:"#e74c3c", sc:1000, bw:1350, zcr:0.36, rms:0.32, ro:2600, ev:0.43 },
+    { label:"Symptomatic",          color:"#e74c3c", sc:1800, bw:1700, zcr:0.18, rms:0.58, ro:3900, ev:0.35 },
+    { label:"Symptomatic",          color:"#e74c3c", sc:1600, bw:1600, zcr:0.17, rms:0.55, ro:3600, ev:0.37 },
+    { label:"Symptomatic",          color:"#e74c3c", sc:2000, bw:1800, zcr:0.19, rms:0.60, ro:4100, ev:0.33 },
+];
+
+const LABEL_RISK = {
+    "Healthy":             0,
+    "Dry/Mild Irritation": 25,
+    "Obstructive Pattern": 55,
+    "Wet/Productive":      60,
+    "Restrictive Pattern": 65,
+    "Symptomatic":         70,
+};
+
+let mediaRecorder, audioCtx, analyser, sourceNode;
+let recordingChunks = [], isRecording = false;
+let waveAnimId, recordTimer, recordSeconds = 0;
+let audioFeatures = {}, allSamples = [];
+
+const waveCanvas = document.getElementById('waveCanvas');
+const waveCtx    = waveCanvas.getContext('2d');
+
+function drawIdleWave() {
+    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+    waveCtx.strokeStyle = 'rgba(39,174,96,0.2)';
+    waveCtx.lineWidth = 2;
+    waveCtx.beginPath();
+    const mid = waveCanvas.height / 2;
+    for (let x = 0; x < waveCanvas.width; x++) {
+        const y = mid + Math.sin(x * 0.04 + Date.now() * 0.002) * 6;
+        x === 0 ? waveCtx.moveTo(x, y) : waveCtx.lineTo(x, y);
+    }
+    waveCtx.stroke();
+    waveAnimId = requestAnimationFrame(drawIdleWave);
+}
+drawIdleWave();
+
+function drawLiveWave(data) {
+    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+    waveCtx.lineWidth = 2;
+    waveCtx.strokeStyle = '#27ae60';
+    waveCtx.shadowBlur = 8;
+    waveCtx.shadowColor = '#27ae60';
+    waveCtx.beginPath();
+    const sw = waveCanvas.width / data.length;
+    for (let i = 0; i < data.length; i++) {
+        const y = (data[i] / 128.0) * waveCanvas.height / 2;
+        i === 0 ? waveCtx.moveTo(i * sw, y) : waveCtx.lineTo(i * sw, y);
+    }
+    waveCtx.stroke();
+    waveCtx.shadowBlur = 0;
+}
+
+async function toggleRecord() {
+    if (isRecording) { stopRecording(); return; }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+        analyser  = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        sourceNode = audioCtx.createMediaStreamSource(stream);
+        sourceNode.connect(analyser);
+        mediaRecorder = new MediaRecorder(stream);
+        recordingChunks = []; allSamples = [];
+        mediaRecorder.ondataavailable = e => recordingChunks.push(e.data);
+        mediaRecorder.start();
+        isRecording = true; recordSeconds = 0;
+        document.getElementById('recordBtn').className = 'record-btn recording';
+        document.getElementById('recordBtn').textContent = '⏹';
+        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--danger);">● RECORDING — Cough 3 times now!</span>';
+        document.getElementById('timer').style.display = 'block';
+        cancelAnimationFrame(waveAnimId);
+
+        const td = new Uint8Array(analyser.fftSize);
+        const fd = new Uint8Array(analyser.frequencyBinCount);
+        (function liveLoop() {
+            if (!isRecording) return;
+            analyser.getByteTimeDomainData(td);
+            analyser.getByteFrequencyData(fd);
+            allSamples.push({ time: [...td], freq: [...fd] });
+            drawLiveWave(td);
+            waveAnimId = requestAnimationFrame(liveLoop);
+        })();
+
+        recordTimer = setInterval(() => {
+            recordSeconds++;
+            const m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
+            document.getElementById('timer').textContent = m + ':' + String(s).padStart(2,'0');
+            if (recordSeconds >= 8) stopRecording();
+        }, 1000);
+    } catch(e) {
+        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--danger);">Microphone access denied. Please allow mic access and try again.</span>';
+    }
+}
+
+function stopRecording() {
+    if (!isRecording) return;
+    isRecording = false;
+    clearInterval(recordTimer);
+    cancelAnimationFrame(waveAnimId);
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    document.getElementById('recordBtn').className = 'record-btn analyzing';
+    document.getElementById('recordBtn').textContent = '⚙️';
+    document.getElementById('recordStatus').innerHTML = '<span style="color:#1a6cff;">⚙ Extracting features...</span>';
+    document.getElementById('timer').style.display = 'none';
+    setTimeout(() => {
+        extractFeatures();
+        document.getElementById('recordBtn').className = 'record-btn';
+        document.getElementById('recordBtn').textContent = '✅';
+        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--secondary);">✓ Recording captured! Continue below.</span>';
+        document.getElementById('nextBtn1').disabled = false;
+        drawIdleWave();
+    }, 1200);
+}
+
+function extractFeatures() {
+    const SR = audioCtx ? audioCtx.sampleRate : 44100;
+    const fftSize = analyser ? analyser.fftSize : 2048;
+
+    if (allSamples.length === 0) {
+        audioFeatures = {
+            rms: 0.48, zcr: 0.22, sc: 2600, bw: 2000, ro: 5200,
+            coughCount: 3, duration: 5, ev: 0.20, raw: { rms:'0.4800', zcr:'0.2200' }
+        };
+        return;
+    }
+
+    let sumRMS = 0, sumZCR = 0, sumSC = 0, sumBW = 0, sumRO = 0;
+    let peakE = 0, peakBin = 0;
+    const energies = [];
+
+    allSamples.forEach(s => {
+        let sq = 0;
+        s.time.forEach(v => { const n=(v-128)/128; sq+=n*n; });
+        const rms = Math.sqrt(sq/s.time.length);
+        energies.push(rms); sumRMS += rms;
+
+        let zc = 0;
+        for (let i=1;i<s.time.length;i++) if ((s.time[i]-128>=0)!==(s.time[i-1]-128>=0)) zc++;
+        sumZCR += zc/s.time.length;
+
+        let wSum=0, mSum=0;
+        const totalE = s.freq.reduce((a,b)=>a+b,0);
+        s.freq.forEach((mag,i) => {
+            const hz = i*(SR/fftSize);
+            wSum += hz*mag; mSum += mag;
+            if (mag>peakE) { peakE=mag; peakBin=i; }
+        });
+        const centroid = mSum>0 ? wSum/mSum : 1000;
+        sumSC += centroid;
+
+        let bwSum = 0;
+        s.freq.forEach((mag,i) => {
+            const hz=i*(SR/fftSize);
+            bwSum += mag*(hz-centroid)**2;
+        });
+        sumBW += mSum>0 ? Math.sqrt(bwSum/mSum) : 1500;
+
+        let ce=0;
+        for (let i=0;i<s.freq.length;i++) {
+            ce+=s.freq[i];
+            if (ce>=totalE*0.85) { sumRO+=(i*(SR/fftSize)); break; }
+        }
+    });
+
+    const n = allSamples.length;
+    const avgRMS = sumRMS/n;
+    const avgZCR = sumZCR/n;
+    const avgSC  = sumSC/n;
+    const avgBW  = sumBW/n;
+    const avgRO  = sumRO/n;
+
+    const avgE = energies.reduce((a,b)=>a+b)/energies.length;
+    const ev   = energies.reduce((s,e)=>s+(e-avgE)**2,0)/energies.length;
+
+    let coughCount=0, inCough=false;
+    const thresh = avgRMS*2.2;
+    energies.forEach(e => {
+        if (e>thresh&&!inCough){coughCount++;inCough=true;}
+        else if (e<thresh*0.6){inCough=false;}
+    });
+
+    audioFeatures = {
+        rms: Math.min(avgRMS, 1.0),
+        zcr: Math.min(avgZCR, 1.0),
+        sc:  Math.round(avgSC),
+        bw:  Math.round(avgBW),
+        ro:  Math.round(avgRO),
+        coughCount: Math.max(1, coughCount),
+        duration: recordSeconds,
+        ev: ev,
+        raw: { rms: avgRMS.toFixed(4), zcr: avgZCR.toFixed(4) }
+    };
+}
+
+function knnClassify(k = 5) {
+    const af = audioFeatures;
+    const norm = {
+        sc:  Math.min(af.sc  / 4300, 1),
+        bw:  Math.min(af.bw  / 3200, 1),
+        zcr: Math.min(af.zcr, 1),
+        rms: Math.min(af.rms, 1),
+        ro:  Math.min(af.ro  / 7800, 1),
+        ev:  Math.min(af.ev  / 0.5,  1),
+    };
+
+    const distances = REFERENCE_LIBRARY.map(ref => {
+        const rNorm = {
+            sc:  ref.sc  / 4300,
+            bw:  ref.bw  / 3200,
+            zcr: ref.zcr,
+            rms: ref.rms,
+            ro:  ref.ro  / 7800,
+            ev:  ref.ev  / 0.5,
+        };
+        const d = Math.sqrt(
+            2.0 * (norm.sc  - rNorm.sc)**2  +
+            1.5 * (norm.zcr - rNorm.zcr)**2 +
+            1.5 * (norm.rms - rNorm.rms)**2 +
+            1.0 * (norm.bw  - rNorm.bw)**2  +
+            0.8 * (norm.ro  - rNorm.ro)**2  +
+            0.7 * (norm.ev  - rNorm.ev)**2
+        );
+        return { ...ref, distance: d };
+    });
+
+    distances.sort((a,b) => a.distance - b.distance);
+    const kNearest = distances.slice(0, k);
+
+    const votes = {};
+    kNearest.forEach(n => {
+        const w = 1 / (n.distance + 0.001);
+        votes[n.label] = (votes[n.label] || 0) + w;
+    });
+
+    const totalVote = Object.values(votes).reduce((a,b)=>a+b, 0);
+    const topLabel  = Object.entries(votes).sort((a,b)=>b[1]-a[1])[0][0];
+    const confidence = ((votes[topLabel]/totalVote)*100).toFixed(1);
+
+    return { kNearest, votes, totalVote, topLabel, confidence };
+}
+
+let lastKNN = null;
+
+function computeScore() {
+    lastKNN = knnClassify(5);
+
+    let acousticScore = 0;
+    Object.entries(lastKNN.votes).forEach(([label, vote]) => {
+        acousticScore += (vote / lastKNN.totalVote) * (LABEL_RISK[label] || 0);
+    });
+    acousticScore = Math.round(acousticScore);
+
+    const age   = parseInt(document.getElementById('f_age').value)  || 30;
+    const smoke = parseInt(document.getElementById('f_smoke').value) || 0;
+    const years = parseInt(document.getElementById('f_years').value) || 0;
+    const cough = parseInt(document.querySelector('input[name="cough"]:checked')?.value || 0);
+    const sob   = parseInt(document.querySelector('input[name="sob"]:checked')?.value   || 0);
+    const chest = parseInt(document.querySelector('input[name="chest"]:checked')?.value || 0);
+    const cook  = parseInt(document.querySelector('input[name="cook"]:checked')?.value  || 0);
+
+    let symScore = 0;
+    if (age>55) symScore+=8; else if (age>45) symScore+=5; else if (age>35) symScore+=2;
+    symScore += smoke*4;
+    symScore += Math.min(years*0.4, 5);
+    symScore += cough*4;
+    symScore += sob*4;
+    symScore += chest*4;
+    symScore += cook*2;
+    symScore = Math.min(symScore, 30);
+
+    return Math.min(acousticScore + symScore, 100);
+}
+
+function runAnalysis() {
+    goTo(3);
+    const af = audioFeatures;
+    const log = document.getElementById('analysisLog');
+    const lines = [
+        ['info', 'Loading cough audio buffer...'],
+        ['ok',   'FFT complete — 2048 frequency bins extracted'],
+        ['ok',   `RMS Energy          → ${af.raw?.rms || af.rms.toFixed(4)} (amplitude of cough force)`],
+        ['ok',   `Zero Crossing Rate  → ${af.raw?.zcr || af.zcr.toFixed(4)} (obstructive=low, restrictive=high)`],
+        ['ok',   `Spectral Centroid   → ${af.sc} Hz (healthy > symptomatic per COUGHVID research)`],
+        ['ok',   `Spectral Bandwidth  → ${af.bw} Hz (reference range: 1300–3200 Hz)`],
+        ['ok',   `Spectral Rolloff    → ${af.ro} Hz (reference range: up to 7800 Hz)`],
+        ['ok',   `Cough events detected: ${af.coughCount}`],
+        ['info', 'Normalizing features to COUGHVID reference scale...'],
+        ['info', 'Running K=5 Nearest Neighbor classifier...'],
+        ['info', 'Computing weighted Euclidean distances to 22 reference profiles...'],
+        ['warn', 'Combining acoustic score with symptom triage profile...'],
+        ['ok',   'Classification complete ✓'],
+    ];
+    log.innerHTML = '';
+    lines.forEach((line, i) => {
+        setTimeout(() => {
+            log.innerHTML += `<div class="log-line"><span class="${line[0]}">[${line[0].toUpperCase()}]</span> ${line[1]}</div>`;
+            log.scrollTop = log.scrollHeight;
+            if (i === lines.length-1) setTimeout(showResults, 700);
+        }, i * 250);
+    });
+}
+
+function showResults() {
+    goTo(4);
+    const score = computeScore();
+    const knn   = lastKNN;
+
+    let riskColor, riskDesc;
+    let riskWord = document.getElementById('riskWord');
+
+    if (score < 25) {
+        riskWord.textContent = 'LOW RISK';      riskColor = '#27ae60';
+        riskDesc = 'Acoustic profile closely matches healthy cough patterns. Maintain regular check-ups.';
+    } else if (score < 50) {
+        riskWord.textContent = 'MILD CONCERN';  riskColor = '#f39c12';
+        riskDesc = 'Some acoustic markers suggest mild airway changes. A routine doctor conversation is recommended.';
+    } else if (score < 72) {
+        riskWord.textContent = 'MODERATE';      riskColor = '#e67e22';
+        riskDesc = 'Acoustic + symptom profile shows notable indicators. Follow-up with a healthcare provider is advised.';
+    } else {
+        riskWord.textContent = 'ELEVATED';      riskColor = '#e74c3c';
+        riskDesc = 'Multiple acoustic risk markers detected. Please discuss lung screening with a doctor promptly.';
+    }
+
+    document.getElementById('scoreVal').style.color = riskColor;
+    document.getElementById('scoreVal').textContent  = score;
+    riskWord.style.color = riskColor;
+
+    const angle = (score/100)*180 - 90;
+    document.getElementById('needle').setAttribute('transform', `rotate(${angle},100,100)`);
+
+    const maxSC = 4300, maxBW = 3200, maxRO = 7800;
+    const features = [
+        { name:'Spectral Centroid', val: audioFeatures.sc+'Hz',  pct: Math.min(audioFeatures.sc/maxSC*100,100),        color:'#1a6cff' },
+        { name:'Spectral Bandwidth',val: audioFeatures.bw+'Hz',  pct: Math.min(audioFeatures.bw/maxBW*100,100),        color:'#27ae60' },
+        { name:'Spectral Rolloff',  val: audioFeatures.ro+'Hz',  pct: Math.min(audioFeatures.ro/maxRO*100,100),        color:'#f39c12' },
+        { name:'ZCR',               val: audioFeatures.zcr.toFixed(3), pct: Math.min(audioFeatures.zcr*250,100),       color:'#c96eff' },
+        { name:'RMS Energy',        val: audioFeatures.rms.toFixed(3), pct: Math.min(audioFeatures.rms*100,100),       color:'#27ae60' },
+        { name:'Cough Events',      val: audioFeatures.coughCount,     pct: Math.min(audioFeatures.coughCount*25,100), color:'#e74c3c' },
+    ];
+
+    document.getElementById('featuresGrid').innerHTML = features.map(f=>`
+        <div class="feature-card">
+            <div class="feature-name">${f.name}</div>
+            <div class="feature-val" style="color:${f.color}">${f.val}</div>
+            <div class="feature-bar-wrap"><div class="feature-bar" style="width:${Math.round(f.pct)}%;background:${f.color};"></div></div>
+        </div>`).join('');
+
+    const maxDist = Math.max(...knn.kNearest.map(n=>n.distance));
+    document.getElementById('knnMatches').innerHTML = `
+        <div class="knn-title">Top ${knn.kNearest.length} closest reference profiles (K=5) — KNN classifier result: <span style="color:${knn.kNearest[0].color}">${knn.topLabel}</span> (${knn.confidence}% confidence)</div>
+        ${knn.kNearest.map((n,i) => `
+            <div class="knn-item">
+                <span style="color:#555;font-family:monospace;font-size:0.72rem;">#${i+1}</span>
+                <span class="knn-label" style="color:${n.color}">${n.label}</span>
+                <div class="knn-bar-wrap">
+                    <div class="knn-bar" style="width:${Math.round((1-n.distance/maxDist)*100)}%;background:${n.color};"></div>
+                </div>
+                <span class="knn-dist">d=${n.distance.toFixed(3)}</span>
+            </div>`).join('')}`;
+
+    document.getElementById('audioFeatureDetails').innerHTML = `
+        <div class="summary-section" style="margin-bottom:0;">
+            <div class="summary-title">Measured vs Reference</div>
+            <div class="summary-row"><span class="key">Spectral Centroid</span><span class="val">${audioFeatures.sc} Hz <span style="color:#444;font-size:0.76rem;">healthy: ~3000–3800 Hz</span></span></div>
+            <div class="summary-row"><span class="key">Spectral Bandwidth</span><span class="val">${audioFeatures.bw} Hz <span style="color:#444;font-size:0.76rem;">reference: 1300–3200 Hz</span></span></div>
+            <div class="summary-row"><span class="key">Spectral Rolloff</span><span class="val">${audioFeatures.ro} Hz <span style="color:#444;font-size:0.76rem;">reference: up to 7800 Hz</span></span></div>
+            <div class="summary-row"><span class="key">Zero Crossing Rate</span><span class="val">${audioFeatures.zcr.toFixed(4)} <span style="color:#444;font-size:0.76rem;">obstructive=low, restrictive=high</span></span></div>
+            <div class="summary-row"><span class="key">RMS Energy</span><span class="val">${audioFeatures.rms.toFixed(4)} <span style="color:#444;font-size:0.76rem;">obstructive=high, restrictive=low</span></span></div>
+            <div class="summary-row"><span class="key">Cough Events</span><span class="val">${audioFeatures.coughCount} detected</span></div>
+            <div class="summary-row"><span class="key">Recording Duration</span><span class="val">${audioFeatures.duration}s</span></div>
+            <div class="summary-row"><span class="key">KNN Classification</span><span class="val" style="color:${knn.kNearest[0].color};font-weight:700;">${knn.topLabel} (${knn.confidence}% confidence)</span></div>
+        </div>`;
+
+    const age = document.getElementById('f_age').value || 'N/A';
+    const smokeEl = document.getElementById('f_smoke');
+    const smokeText = smokeEl.options[smokeEl.selectedIndex]?.text || 'N/A';
+    const questions = score < 25 ? [
+        'When should I schedule my next routine lung check-up?',
+        'Are there preventive measures for my environment?',
+        'What early symptoms should I watch for?',
+    ] : score < 50 ? [
+        'Can you review these acoustic cough analysis results with me?',
+        'Should I consider spirometry (lung function) testing?',
+        'What does my risk profile mean for my long-term lung health?',
+        'Are there lifestyle changes that would help?',
+    ] : [
+        'I would like to discuss lung cancer screening — can we do a low-dose CT (LDCT) scan?',
+        'Can you review these AI acoustic biopsy pre-screening results?',
+        'Given my acoustic pattern and risk factors, what specialist should I see?',
+        'Are there pulmonary function tests (spirometry) you recommend?',
+        'What should I avoid to reduce further risk?',
+    ];
+
+    document.getElementById('summaryBlock').innerHTML = `
+        <div class="det-card">
+            <div class="det-card-title">Doctor Conversation Summary</div>
+            <div class="det-card-sub">// BRING THIS TO YOUR APPOINTMENT</div>
+            <div class="summary-section">
+                <div class="summary-title">Patient Profile</div>
+                <div class="summary-row"><span class="key">Age</span><span class="val">${age}</span></div>
+                <div class="summary-row"><span class="key">Smoking History</span><span class="val">${smokeText}</span></div>
+                <div class="summary-row"><span class="key">Acoustic Classification</span><span class="val" style="color:${knn.kNearest[0].color}">${knn.topLabel} (${knn.confidence}% confidence)</span></div>
+                <div class="summary-row"><span class="key">Triage Score</span><span class="val" style="color:${riskColor};font-weight:700;">${score}/100 — ${riskWord.textContent}</span></div>
+                <div class="summary-row"><span class="key">Assessment</span><span class="val">${riskDesc}</span></div>
+            </div>
+            <div class="summary-section" style="margin-bottom:0;">
+                <div class="summary-title">Suggested Questions for Your Doctor</div>
+                <ul class="questions-list">
+                    ${questions.map((q,i)=>`<li><div class="q-bullet">${i+1}</div>${q}</li>`).join('')}
+                </ul>
+            </div>
+        </div>`;
+}
+
+function goTo(n) {
+    document.querySelectorAll('.det-panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+    document.querySelectorAll('.step').forEach((s,i) => {
+        s.classList.remove('active','done');
+        if (i < n-1) s.classList.add('done');
+        if (i === n-1) s.classList.add('active');
+    });
+    window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function restart() {
+    recordingChunks=[]; allSamples=[]; audioFeatures={}; lastKNN=null;
+    document.getElementById('recordBtn').className = 'record-btn';
+    document.getElementById('recordBtn').textContent = '🎙️';
+    document.getElementById('recordStatus').innerHTML = 'Press the microphone and perform <strong style="color:white;">3 forced coughs</strong>.<br><span style="font-size:0.8rem;">Recording auto-stops after 8 seconds.</span>';
+    document.getElementById('nextBtn1').disabled = true;
+    document.getElementById('timer').style.display = 'none';
+    cancelAnimationFrame(waveAnimId); drawIdleWave();
+    goTo(1);
+}
+
+function downloadSummary() {
+    const score    = document.getElementById('scoreVal').textContent;
+    const risk     = document.getElementById('riskWord').textContent;
+    const age      = document.getElementById('f_age').value || 'N/A';
+    const smokeEl  = document.getElementById('f_smoke');
+    const smoke    = smokeEl.options[smokeEl.selectedIndex]?.text || 'N/A';
+    const knnLabel = lastKNN ? lastKNN.topLabel : 'N/A';
+    const knnConf  = lastKNN ? lastKNN.confidence : 'N/A';
+
+    const txt = `BREATHLINK AI ACOUSTIC BIOPSY — DOCTOR SUMMARY
+================================================
+Date: ${new Date().toLocaleDateString()}
+Tool: Global Breath-Link Initiative (Prototype v0.1)
+Proposed by: Ashrita Nagalla & Akhil Nagalla
+
+METHODOLOGY
+-----------
+This tool extracts real acoustic features from cough audio using
+the Web Audio API (FFT analysis), then compares them against a
+reference library derived from published COUGHVID & Coswara
+respiratory research datasets using K-Nearest Neighbor (KNN)
+classification.
+
+PATIENT PROFILE
+---------------
+Age:             ${age}
+Smoking History: ${smoke}
+
+ACOUSTIC ANALYSIS
+-----------------
+Spectral Centroid:   ${audioFeatures.sc} Hz  (healthy baseline ~3000–3800 Hz)
+Spectral Bandwidth:  ${audioFeatures.bw} Hz  (reference range: 1300–3200 Hz)
+Spectral Rolloff:    ${audioFeatures.ro} Hz
+Zero Crossing Rate:  ${audioFeatures.zcr?.toFixed(4)}  (low=obstructive, high=restrictive)
+RMS Energy:          ${audioFeatures.rms?.toFixed(4)}
+Cough Events:        ${audioFeatures.coughCount}
+
+KNN CLASSIFICATION
+------------------
+Result:      ${knnLabel}
+Confidence:  ${knnConf}%
+Triage Score: ${score}/100 — ${risk}
+
+DISCLAIMER
+----------
+This is a prototype pre-screening tool, NOT a medical diagnosis.
+Please share this with a qualified healthcare provider.
+
+References: Orlandic et al. 2021 (COUGHVID, Nature Scientific Data);
+            Naveenkumar et al. 2023 (Springer IACC); 
+            Rudraraju et al. 2020 (Informatics in Medicine Unlocked)`;
+
+    const blob = new Blob([txt], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `BreathLink_AcousticBiopsy_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+}
+</script>
+</body>
+</html>

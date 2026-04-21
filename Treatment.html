@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treatment Plan — Global Breath-Link</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+body {
+    background:#0f1c2e;
+    color:white;
+}
+
+.treat-wrap {
+    max-width:900px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+.treat-card {
+    background:#060e1a;
+    border:1px solid rgba(39,174,96,0.2);
+    border-radius:16px;
+    padding:25px;
+    margin-bottom:20px;
+}
+
+.treat-title {
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#27ae60;
+}
+
+.risk-box {
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.risk-score {
+    font-size:3rem;
+    font-weight:bold;
+}
+
+.btn {
+    background:#27ae60;
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+    width:100%;
+    margin-top:10px;
+}
+
+input {
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    margin-top:8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>3. Personalized Treatment Pathway</h1>
+    <p>From AI Risk → Real Clinical Action</p>
+</header>
+
+<div class="treat-wrap">
+
+    <!-- RISK SCORE -->
+    <div class="risk-box">
+        <div>Your Risk Score</div>
+        <div class="risk-score" id="score">--</div>
+        <div id="riskText">Loading...</div>
+    </div>
+
+    <!-- CLINICAL STEPS -->
+    <div class="treat-card">
+        <div class="treat-title">Next Clinical Steps</div>
+        <ul id="stepsList"></ul>
+    </div>
+
+    <!-- FIND CARE -->
+    <div class="treat-card">
+        <div class="treat-title">Find Care Near You</div>
+        <input type="text" id="locationInput" placeholder="Enter your country or city">
+        <button class="btn" onclick="findCare()">Find Providers</button>
+        <div id="careResults" style="margin-top:15px;"></div>
+    </div>
+
+    <!-- TREATMENT EXPLAINER -->
+    <div class="treat-card">
+        <div class="treat-title">Treatment & Medication Guide</div>
+        <ul>
+            <li><strong>Inhalers:</strong> Help open airways and reduce inflammation</li>
+            <li><strong>COPD Management:</strong> Long-term airway disease treated with bronchodilators and rehab</li>
+            <li><strong>Pulmonologist:</strong> Lung specialist who manages chronic respiratory disease</li>
+        </ul>
+    </div>
+
+    <!-- LIFESTYLE -->
+    <div class="treat-card">
+        <div class="treat-title">Lifestyle Action Plan</div>
+        <ul id="lifestyleList"></ul>
+    </div>
+
+    <!-- PDF -->
+    <div class="treat-card">
+        <div class="treat-title">Doctor Summary</div>
+        <button class="btn" onclick="downloadPDF()">⬇ Download "Take This To Your Doctor"</button>
+    </div>
+
+</div>
+
+<script>
+/* GET SCORE FROM DETECTION PAGE */
+let score = localStorage.getItem("riskScore") || 50;
+document.getElementById("score").textContent = score;
+
+/* DETERMINE RISK LEVEL */
+let riskText = "";
+let steps = [];
+let lifestyle = [];
+
+if (score < 25) {
+    riskText = "Low Risk";
+    steps = ["Routine check-up", "Monitor symptoms"];
+    lifestyle = ["Maintain clean air environment", "Exercise regularly"];
+}
+else if (score < 50) {
+    riskText = "Mild Concern";
+    steps = ["Visit GP", "Consider spirometry"];
+    lifestyle = ["Reduce smoke exposure", "Improve diet"];
+}
+else if (score < 75) {
+    riskText = "Moderate Risk";
+    steps = ["Spirometry test", "Pulmonologist referral", "Chest imaging"];
+    lifestyle = ["Avoid pollutants", "Track symptoms daily"];
+}
+else {
+    riskText = "High Risk";
+    steps = ["LDCT scan", "Urgent specialist referral", "Full lung evaluation"];
+    lifestyle = ["Immediate exposure reduction", "Strict medical follow-up"];
+}
+
+document.getElementById("riskText").textContent = riskText;
+
+/* RENDER LISTS */
+document.getElementById("stepsList").innerHTML =
+    steps.map(s => `<li>${s}</li>`).join("");
+
+document.getElementById("lifestyleList").innerHTML =
+    lifestyle.map(s => `<li>${s}</li>`).join("");
+
+/* FIND CARE (simple placeholder) */
+function findCare() {
+    let loc = document.getElementById("locationInput").value;
+    document.getElementById("careResults").innerHTML =
+        "Showing providers near: <strong>" + loc + "</strong><br>• Local hospital<br>• Pulmonology clinic<br>• GP center";
+}
+
+/* DOWNLOAD PDF */
+function downloadPDF() {
+    let text = `
+Global Breath-Link Report
+
+Risk Score: ${score}
+Risk Level: ${riskText}
+
+Recommended Steps:
+${steps.join("\n")}
+
+Lifestyle Plan:
+${lifestyle.join("\n")}
+`;
+
+    let blob = new Blob([text], { type: "text/plain" });
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "breathlink_report.txt";
+    link.click();
+}
+</script>
+
+</body>
+</html>
