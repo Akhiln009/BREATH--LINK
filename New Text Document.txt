@@ -1,0 +1,260 @@
+"""
+app.py — Global Breath-Link Initiative
+Serves your existing HTML files + runs HeAR cough analysis
+Just drop this in your LUNG CANCER folder and run: py app.py
+"""
+
+
+from flask import Flask, request, jsonify, send_from_directory
+import numpy as np
+import torch
+import torchaudio
+import tempfile
+import os
+import json
+
+
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
+
+
+app = Flask(__name__, static_folder='.', static_url_path='')
+
+
+# ══════════════════════════════════════════
+# LOAD HEAR MODEL FROM LOCAL CACHE
+# ══════════════════════════════════════════
+print("Loading Google HeAR model...")
+hear_model = None
+
+
+try:
+    from huggingface_hub import snapshot_download
+    import tensorflow as tf
+
+
+    model_dir = snapshot_download(
+        repo_id="google/hear",
+        token=None,
+        local_files_only=True
+    )
+    hear_model = tf.saved_model.load(model_dir)
+    print("✓ HeAR model loaded!")
+except Exception as e:
+    print(f"⚠ HeAR not available: {e}")
+    print("  Running in KNN-only mode.")
+
+
+REFERENCE_LIBRARY = [
+    {"label": "Healthy",             "color": "#27ae60", "risk": 0,  "sc": 3200, "bw": 2400, "zcr": 0.28, "rms": 0.55, "ro": 5800, "ev": 0.12},
+    {"label": "Healthy",             "color": "#27ae60", "risk": 0,  "sc": 3500, "bw": 2600, "zcr": 0.30, "rms": 0.50, "ro": 6100, "ev": 0.10},
+    {"label": "Healthy",             "color": "#27ae60", "risk": 0,  "sc": 2900, "bw": 2200, "zcr": 0.25, "rms": 0.60, "ro": 5500, "ev": 0.14},
+    {"label": "Healthy",             "color": "#27ae60", "risk": 0,  "sc": 3100, "bw": 2300, "zcr": 0.27, "rms": 0.52, "ro": 5700, "ev": 0.11},
+    {"label": "Healthy",             "color": "#27ae60", "risk": 0,  "sc": 3800, "bw": 2800, "zcr": 0.32, "rms": 0.45, "ro": 6500, "ev": 0.09},
+    {"label": "Dry/Mild Irritation", "color": "#f39c12", "risk": 25, "sc": 2400, "bw": 1900, "zcr": 0.22, "rms": 0.48, "ro": 4800, "ev": 0.18},
+    {"label": "Dry/Mild Irritation", "color": "#f39c12", "risk": 25, "sc": 2200, "bw": 1800, "zcr": 0.20, "rms": 0.45, "ro": 4500, "ev": 0.20},
+    {"label": "Dry/Mild Irritation", "color": "#f39c12", "risk": 25, "sc": 2600, "bw": 2000, "zcr": 0.23, "rms": 0.50, "ro": 5000, "ev": 0.17},
+    {"label": "Obstructive Pattern", "color": "#e67e22", "risk": 55, "sc": 1600, "bw": 1500, "zcr": 0.12, "rms": 0.75, "ro": 3500, "ev": 0.30},
+    {"label": "Obstructive Pattern", "color": "#e67e22", "risk": 55, "sc": 1400, "bw": 1400, "zcr": 0.10, "rms": 0.80, "ro": 3200, "ev": 0.35},
+    {"label": "Obstructive Pattern", "color": "#e67e22", "risk": 55, "sc": 1800, "bw": 1600, "zcr": 0.13, "rms": 0.70, "ro": 3800, "ev": 0.28},
+    {"label": "Wet/Productive",      "color": "#e74c3c", "risk": 60, "sc": 1200, "bw": 1350, "zcr": 0.15, "rms": 0.65, "ro": 3000, "ev": 0.40},
+    {"label": "Wet/Productive",      "color": "#e74c3c", "risk": 60, "sc": 1100, "bw": 1300, "zcr": 0.14, "rms": 0.68, "ro": 2800, "ev": 0.42},
+    {"label": "Wet/Productive",      "color": "#e74c3c", "risk": 60, "sc": 1300, "bw": 1400, "zcr": 0.16, "rms": 0.62, "ro": 3100, "ev": 0.38},
+    {"label": "Restrictive Pattern", "color": "#e74c3c", "risk": 65, "sc": 900,  "bw": 1300, "zcr": 0.38, "rms": 0.30, "ro": 2500, "ev": 0.45},
+    {"label": "Restrictive Pattern", "color": "#e74c3c", "risk": 65, "sc": 800,  "bw": 1200, "zcr": 0.40, "rms": 0.28, "ro": 2300, "ev": 0.48},
+    {"label": "Symptomatic",         "color": "#e74c3c", "risk": 70, "sc": 1800, "bw": 1700, "zcr": 0.18, "rms": 0.58, "ro": 3900, "ev": 0.35},
+    {"label": "Symptomatic",         "color": "#e74c3c", "risk": 70, "sc": 1600, "bw": 1600, "zcr": 0.17, "rms": 0.55, "ro": 3600, "ev": 0.37},
+    {"label": "Symptomatic",         "color": "#e74c3c", "risk": 70, "sc": 2000, "bw": 1800, "zcr": 0.19, "rms": 0.60, "ro": 4100, "ev": 0.33},
+]
+
+
+@app.route('/')
+def home():
+    return send_from_directory('.', 'index.html')
+
+
+@app.route('/awareness')
+def awareness():
+    return send_from_directory('.', 'awareness.html')
+
+
+@app.route('/detection')
+def detection():
+    return send_from_directory('.', 'detection.html')
+
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory('.', filename)
+
+
+@app.route('/api/analyze', methods=['POST'])
+def analyze():
+    try:
+        symptoms = json.loads(request.form.get('symptoms', '{}'))
+        if 'audio' not in request.files:
+            return jsonify(demo_analysis(symptoms))
+        audio_file = request.files['audio']
+        with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as tmp:
+            audio_file.save(tmp.name)
+            tmp_path = tmp.name
+        try:
+            waveform, sample_rate = torchaudio.load(tmp_path)
+        except Exception:
+            os.unlink(tmp_path)
+            return jsonify(demo_analysis(symptoms))
+        os.unlink(tmp_path)
+        if waveform.shape[0] > 1:
+            waveform = waveform.mean(dim=0, keepdim=True)
+        if sample_rate != 16000:
+            waveform = torchaudio.transforms.Resample(sample_rate, 16000)(waveform)
+        audio_np = waveform.squeeze().numpy()
+        features = extract_features(audio_np, 16000)
+        hear_score = None
+        if hear_model is not None:
+            _, hear_score = run_hear(waveform)
+        knn   = knn_classify(features)
+        score = compute_final_score(features, knn, symptoms, hear_score)
+        return jsonify({
+            'features': features, 'knn': knn,
+            'hear_score': hear_score, 'hear_available': hear_model is not None,
+            'final_score': score, 'mode': 'hear+knn' if hear_model else 'knn'
+        })
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify(demo_analysis(json.loads(request.form.get('symptoms', '{}'))))
+
+
+
+
+def extract_features(audio, sr):
+    N = len(audio)
+    fft = np.fft.rfft(audio)
+    freqs = np.fft.rfftfreq(N, 1/sr)
+    mag = np.abs(fft)
+    rms = float(np.sqrt(np.mean(audio**2)))
+    zcr = float(np.sum(np.diff(np.sign(audio)) != 0) / N)
+    sc  = float(np.sum(freqs * mag) / (np.sum(mag) + 1e-8))
+    bw  = float(np.sqrt(np.sum(((freqs - sc)**2) * mag) / (np.sum(mag) + 1e-8)))
+    cumsum = np.cumsum(mag)
+    rolloff_idx = np.searchsorted(cumsum, 0.85 * cumsum[-1])
+    ro = float(freqs[min(rolloff_idx, len(freqs)-1)])
+    frame_size = max(N // 10, 1)
+    energies = [float(np.sqrt(np.mean(audio[i*frame_size:(i+1)*frame_size]**2)))
+                for i in range(10) if (i+1)*frame_size <= N]
+    ev = float(np.var(energies)) if energies else 0.0
+    cough_count = 0
+    in_cough = False
+    threshold = rms * 2.2
+    for e in energies:
+        if e > threshold and not in_cough:
+            cough_count += 1; in_cough = True
+        elif e < threshold * 0.6:
+            in_cough = False
+    return {
+        'rms': round(min(rms, 1.0), 4), 'zcr': round(min(zcr, 1.0), 4),
+        'sc': int(min(sc, 4300)), 'bw': int(min(bw, 3200)),
+        'ro': int(min(ro, 7800)), 'ev': round(min(ev, 1.0), 4),
+        'coughCount': max(1, cough_count), 'duration': round(N / 16000, 1),
+    }
+
+
+
+
+def run_hear(waveform):
+    try:
+        import tensorflow as tf
+        target = 32000
+        audio = waveform.squeeze().numpy()
+        if len(audio) < target:
+            audio = np.pad(audio, (0, target - len(audio)))
+        else:
+            audio = audio[:target]
+        audio_tf  = tf.constant(audio[np.newaxis, :], dtype=tf.float32)
+        embedding = hear_model.signatures["serving_default"](audio_tf)
+        emb = list(embedding.values())[0].numpy().squeeze()
+        irregularity   = float(np.std(emb))
+        low_dim_energy = float(np.mean(np.abs(emb[:128])))
+        hi_dim_energy  = float(np.mean(np.abs(emb[128:])))
+        hear_score = min(40, int(irregularity * 20 + low_dim_energy / (hi_dim_energy + 1e-8) * 5))
+        return emb.tolist(), hear_score
+    except Exception as e:
+        print(f"HeAR error: {e}")
+        return None, None
+
+
+
+
+def knn_classify(features, k=5):
+    norm = {
+        'sc': min(features['sc']/4300, 1.0), 'bw': min(features['bw']/3200, 1.0),
+        'zcr': min(features['zcr'], 1.0),    'rms': min(features['rms'], 1.0),
+        'ro': min(features['ro']/7800, 1.0), 'ev': min(features['ev']/0.5, 1.0),
+    }
+    distances = []
+    for ref in REFERENCE_LIBRARY:
+        rn = {'sc': ref['sc']/4300, 'bw': ref['bw']/3200, 'zcr': ref['zcr'],
+              'rms': ref['rms'], 'ro': ref['ro']/7800, 'ev': ref['ev']/0.5}
+        d = (2.0*(norm['sc']-rn['sc'])**2 + 1.5*(norm['zcr']-rn['zcr'])**2 +
+             1.5*(norm['rms']-rn['rms'])**2 + 1.0*(norm['bw']-rn['bw'])**2 +
+             0.8*(norm['ro']-rn['ro'])**2 + 0.7*(norm['ev']-rn['ev'])**2) ** 0.5
+        distances.append({**ref, 'distance': round(d, 4)})
+    distances.sort(key=lambda x: x['distance'])
+    k_nearest = distances[:k]
+    votes = {}
+    total_w = 0
+    for n in k_nearest:
+        w = 1 / (n['distance'] + 0.001)
+        votes[n['label']] = votes.get(n['label'], 0) + w
+        total_w += w
+    top_label  = max(votes, key=votes.get)
+    confidence = round(votes[top_label] / total_w * 100, 1)
+    return {
+        'kNearest': k_nearest, 'topLabel': top_label, 'confidence': confidence,
+        'votes': {k: round(v/total_w*100, 1) for k, v in votes.items()},
+    }
+
+
+
+
+def compute_final_score(features, knn, symptoms, hear_score=None):
+    label_risk = {"Healthy": 0, "Dry/Mild Irritation": 25,
+                  "Obstructive Pattern": 55, "Wet/Productive": 60,
+                  "Restrictive Pattern": 65, "Symptomatic": 70}
+    acoustic = sum((pct/100) * label_risk.get(label, 0) for label, pct in knn['votes'].items())
+    if hear_score is not None:
+        acoustic = (acoustic * 0.7) + (hear_score * 0.3 * 70/40)
+    acoustic = min(round(acoustic), 70)
+    age   = int(symptoms.get('age',   30))
+    smoke = int(symptoms.get('smoke',  0))
+    years = int(symptoms.get('years',  0))
+    cough = int(symptoms.get('cough',  0))
+    sob   = int(symptoms.get('sob',    0))
+    chest = int(symptoms.get('chest',  0))
+    cook  = int(symptoms.get('cook',   0))
+    sym  = 0
+    sym += 8 if age > 55 else 5 if age > 45 else 2 if age > 35 else 0
+    sym += smoke * 4 + min(years * 0.4, 5) + cough * 4 + sob * 4 + chest * 4 + cook * 2
+    return min(acoustic + min(int(sym), 30), 100)
+
+
+
+
+def demo_analysis(symptoms):
+    features = {'rms': 0.48, 'zcr': 0.22, 'sc': 2600,
+                'bw': 2000, 'ro': 5200, 'ev': 0.20,
+                'coughCount': 3, 'duration': 5.0}
+    knn   = knn_classify(features)
+    score = compute_final_score(features, knn, symptoms)
+    return {'features': features, 'knn': knn, 'hear_score': None,
+            'hear_available': False, 'final_score': score, 'mode': 'demo'}
+
+
+
+
+if __name__ == '__main__':
+    print("\n🫁 BreathLink running at http://localhost:5000")
+    print("   Open that link in your browser!\n")
+    app.run(debug=True, port=5000)
+
+
+
