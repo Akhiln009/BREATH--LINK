@@ -25,7 +25,7 @@ section{ padding:40px 0; border-bottom:1px solid #ddd; }
 
 /* SIMULATOR STYLES */
 #simulator{ display:none; background:var(--dark); color:white; padding:40px 20px; text-align:center; }
-.viewer { max-width:700px; margin:20px auto; background: #000; border-radius: 20px; position: relative; border: 1px solid #333; }
+.viewer { max-width:700px; margin:20px auto; background: #000; border-radius: 20px; position: relative; border: 0px solid #333; }
 canvas { display: block; max-width: 100%; height: auto; }
 
 
