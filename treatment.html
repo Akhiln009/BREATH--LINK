@@ -6,427 +6,248 @@
 <title>Treatment Plan — Global Breath-Link</title>
 <link rel="stylesheet" href="style.css">
 <style>
-body { background:#0f1c2e; color:white; margin:0; font-family:'Segoe UI',Tahoma,sans-serif; }
+/* TREATMENT SPECIFIC STYLES - LIGHT THEME */
+.treatment-wrap { max-width: 900px; margin: 0 auto; padding: 20px 0; }
 
-/* ── NAV BAR (matches detection.html) ── */
-.top-nav {
-    background:#132238;
-    border-bottom:1px solid rgba(39,174,96,0.15);
-    padding:12px 20px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    justify-content:center;
-}
-.top-nav a {
-    color:#888;
-    text-decoration:none;
-    padding:6px 14px;
-    border-radius:6px;
-    font-size:0.85rem;
-    transition:color 0.2s;
-}
-.top-nav a:hover { color:#fff; }
-.top-nav a.active {
-    color:var(--secondary);
-    background:rgba(39,174,96,0.1);
-    border:1px solid rgba(39,174,96,0.3);
-}
-
-/* ── LAYOUT ── */
-.treat-wrap { max-width:900px; margin:auto; padding:40px 20px; }
-
-/* ── CARDS ── */
-.treat-card {
-    background:#060e1a;
-    border:1px solid rgba(39,174,96,0.2);
-    border-radius:16px;
-    padding:25px;
-    margin-bottom:20px;
-    position:relative;
-    overflow:hidden;
-}
-.treat-card::before {
-    content:'';
-    position:absolute;
-    top:0; left:0; right:0;
-    height:2px;
-    background:linear-gradient(90deg,transparent,var(--secondary),transparent);
-}
+/* CARD OVERRIDES */
 .treat-title {
-    font-size:0.68rem;
-    color:var(--secondary);
-    letter-spacing:0.12em;
+    font-size:0.85rem;
+    color:#555;
+    font-weight: bold;
+    letter-spacing:0.08em;
     text-transform:uppercase;
+    margin-top:0;
     margin-bottom:16px;
     display:flex;
     align-items:center;
     gap:8px;
-    font-family:monospace;
-}
-.treat-title::after {
-    content:'';
-    flex:1;
-    height:1px;
-    background:rgba(39,174,96,0.15);
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
 }
 
-/* ── RISK SCORE ── */
-.risk-box { text-align:center; margin-bottom:30px; padding:30px; }
-.risk-score {
-    font-size:4rem;
-    font-weight:900;
-    line-height:1;
-    margin:10px 0;
-}
+/* RISK SCORE */
+.risk-box { text-align:center; padding:30px 20px; margin-bottom: 20px;}
+.risk-score { font-size:4rem; font-weight:900; line-height:1; margin:10px 0; color: #333; }
 .risk-badge {
-    display:inline-block;
-    padding:5px 18px;
-    border-radius:20px;
-    font-size:0.78rem;
-    letter-spacing:0.12em;
-    text-transform:uppercase;
-    font-family:monospace;
-    margin-top:8px;
+    display:inline-block; padding:6px 18px; border-radius:20px;
+    font-size:0.8rem; font-weight: bold; letter-spacing:0.1em;
+    text-transform:uppercase; margin-top:8px;
 }
 
-/* ── STEPS LIST ── */
-.steps-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+/* STEPS */
+.steps-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
 .steps-list li {
-    display:flex;
-    align-items:flex-start;
-    gap:12px;
-    padding:12px;
-    background:rgba(39,174,96,0.05);
-    border:1px solid rgba(39,174,96,0.12);
-    border-radius:10px;
-    font-size:0.9rem;
-    color:#ccc;
-    line-height:1.5;
+    display:flex; align-items:flex-start; gap:12px; padding:15px;
+    background:#fdfdfd; border:1px solid #eee; border-radius:8px;
+    font-size:0.95rem; color:#444; line-height:1.5; font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 .step-num {
-    width:24px; height:24px;
-    border-radius:50%;
-    background:rgba(39,174,96,0.12);
-    border:1px solid var(--secondary);
-    color:var(--secondary);
-    font-size:0.7rem;
+    width:26px; height:26px; border-radius:50%;
+    background:#e8f4fd; border:1px solid var(--primary);
+    color:var(--primary); font-size:0.8rem; font-weight:bold;
     display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
-    margin-top:1px;
-    font-family:monospace;
+    flex-shrink:0; margin-top:2px;
 }
 
-/* ── MAPS ── */
-.map-search-row {
-    display:flex;
-    gap:10px;
-    margin-bottom:16px;
-    flex-wrap:wrap;
-}
+/* MAPS */
+.map-search-row { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
 .map-input {
-    flex:1;
-    min-width:200px;
-    background:#060e1a;
-    border:1px solid rgba(39,174,96,0.25);
-    border-radius:10px;
-    color:white;
-    padding:12px 14px;
-    font-family:'Segoe UI',Tahoma,sans-serif;
-    font-size:0.9rem;
-    outline:none;
-    transition:border-color 0.2s;
+    flex:1; min-width:200px; background:#fff; border:1px solid #ccc;
+    border-radius:6px; color:#333; padding:12px 14px; font-size:0.95rem;
+    outline:none; transition:border-color 0.2s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); font-family:'Segoe UI',Tahoma,sans-serif;
 }
-.map-input:focus { border-color:var(--secondary); }
-.map-input::placeholder { color:#444; }
+.map-input:focus { border-color:var(--secondary); box-shadow: 0 0 5px rgba(39,174,96,0.3); }
 
-.map-filter-row {
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-bottom:14px;
-}
+.map-filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .filter-btn {
-    padding:6px 14px;
-    border-radius:20px;
-    border:1px solid rgba(39,174,96,0.25);
-    background:transparent;
-    color:#777;
-    font-size:0.78rem;
-    cursor:pointer;
-    font-family:'Segoe UI',Tahoma,sans-serif;
-    transition:all 0.2s;
+    padding:8px 16px; border-radius:20px; border:1px solid #ccc;
+    background:#f9f9f9; color:#555; font-size:0.85rem; font-weight:500;
+    cursor:pointer; transition:all 0.2s; font-family:'Segoe UI',Tahoma,sans-serif;
 }
-.filter-btn:hover { border-color:var(--secondary); color:var(--secondary); }
-.filter-btn.active {
-    background:rgba(39,174,96,0.12);
-    border-color:var(--secondary);
-    color:var(--secondary);
-}
+.filter-btn:hover { border-color:var(--primary); color:var(--primary); background: #e8f4fd; }
+.filter-btn.active { background:#e8f4fd; border-color:var(--primary); color:var(--primary); font-weight:bold; }
 
-#map {
-    width:100%;
-    height:340px;
-    border-radius:12px;
-    border:1px solid rgba(39,174,96,0.2);
-    background:#0a1628;
-    margin-bottom:14px;
-    overflow:hidden;
-    position:relative;
-}
-.map-placeholder {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:100%;
-    gap:12px;
-    color:#555;
-}
+#map { width:100%; height:360px; border-radius:8px; border:1px solid #ddd; background:#f8f9fa; margin-bottom:14px; position:relative; overflow:hidden;}
+.map-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:12px; color:#666; }
 .map-placeholder .map-icon { font-size:2.5rem; }
-.map-placeholder p { font-size:0.85rem; font-family:monospace; letter-spacing:0.05em; }
 
-.map-results-list { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.map-results-list { display:flex; flex-direction:column; gap:10px; margin-top:15px; }
 .map-result-item {
-    display:flex;
-    gap:14px;
-    align-items:flex-start;
-    padding:12px 14px;
-    background:#060e1a;
-    border:1px solid rgba(39,174,96,0.1);
-    border-radius:10px;
-    font-size:0.85rem;
-    transition:border-color 0.2s;
-    cursor:pointer;
+    display:flex; gap:14px; align-items:flex-start; padding:15px;
+    background:#fdfdfd; border:1px solid #eee; border-radius:8px;
+    font-size:0.9rem; transition:all 0.2s; cursor:pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
-.map-result-item:hover { border-color:rgba(39,174,96,0.4); }
-.result-icon {
-    font-size:1.4rem;
-    flex-shrink:0;
-    margin-top:2px;
-}
-.result-name { color:#eee; font-weight:600; margin-bottom:2px; }
-.result-address { color:#555; font-size:0.78rem; font-family:monospace; }
-.result-distance { color:var(--secondary); font-size:0.75rem; font-family:monospace; margin-top:4px; }
+.map-result-item:hover { border-color:var(--secondary); transform: translateX(4px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.result-icon { font-size:1.6rem; flex-shrink:0; }
+.result-name { color:#333; font-weight:700; margin-bottom:4px; font-size:1rem; }
+.result-address { color:#666; font-size:0.85rem; }
+.result-distance { color:var(--secondary); font-size:0.8rem; font-weight:bold; margin-top:4px; }
 .result-badge {
-    display:inline-block;
-    padding:2px 8px;
-    border-radius:10px;
-    font-size:0.65rem;
-    letter-spacing:0.07em;
-    text-transform:uppercase;
-    margin-top:4px;
+    display:inline-block; padding:3px 8px; border-radius:12px;
+    font-size:0.7rem; font-weight:bold; letter-spacing:0.05em;
+    text-transform:uppercase; margin-top:6px;
 }
 
-/* ── TREATMENT GRID ── */
-.treatment-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+/* TREATMENT GRID */
+.treatment-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
 @media(max-width:600px){ .treatment-grid{ grid-template-columns:1fr; } }
-.tx-item {
-    background:rgba(39,174,96,0.04);
-    border:1px solid rgba(39,174,96,0.12);
-    border-radius:10px;
-    padding:14px;
-}
-.tx-item-title { color:var(--secondary); font-size:0.8rem; font-weight:700; margin-bottom:6px; font-family:monospace; letter-spacing:0.05em; }
-.tx-item-body { color:#999; font-size:0.83rem; line-height:1.6; }
+.tx-item { background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+.tx-item-title { color:var(--primary); font-size:0.9rem; font-weight:bold; margin-bottom:8px; }
+.tx-item-body { color:#555; font-size:0.9rem; line-height:1.6; }
 
-/* ── LIFESTYLE ── */
-.lifestyle-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
-.lifestyle-list li {
-    display:flex; gap:10px; align-items:flex-start;
-    color:#bbb; font-size:0.88rem; line-height:1.5;
-}
-.ls-icon { font-size:1rem; flex-shrink:0; margin-top:1px; }
+/* LIFESTYLE */
+.lifestyle-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+.lifestyle-list li { display:flex; gap:12px; align-items:flex-start; color:#444; font-size:0.95rem; line-height:1.5; background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #eee;}
+.ls-icon { font-size:1.2rem; flex-shrink:0; margin-top:2px; }
 
-/* ── BUTTONS ── */
-.btn {
-    display:block;
-    width:100%;
-    padding:13px;
-    border-radius:10px;
-    border:none;
-    font-size:0.9rem;
-    font-weight:bold;
-    cursor:pointer;
-    font-family:'Segoe UI',Tahoma,sans-serif;
-    transition:all 0.2s;
-    margin-top:10px;
-}
+/* BUTTONS */
+.btn { display:block; width:100%; padding:15px; border-radius:8px; border:none; font-size:1rem; font-weight:bold; cursor:pointer; font-family:'Segoe UI',Tahoma,sans-serif; transition:all 0.2s; margin-top:15px; }
 .btn-primary { background:var(--secondary); color:white; }
-.btn-primary:hover { background:#22c774; box-shadow:0 6px 20px rgba(39,174,96,0.3); }
-.btn-outline { background:transparent; color:var(--secondary); border:1px solid var(--secondary); }
-.btn-outline:hover { background:rgba(39,174,96,0.08); }
-.btn-map { background:#1a6cff; color:white; }
-.btn-map:hover { background:#2979ff; box-shadow:0 6px 20px rgba(26,108,255,0.3); }
+.btn-primary:hover { background:#22c774; box-shadow:0 4px 15px rgba(39,174,96,0.3); transform:translateY(-2px); }
+.btn-outline { background:transparent; color:var(--primary); border:2px solid var(--primary); }
+.btn-outline:hover { background:#e8f4fd; }
+.btn-map { background:var(--primary); color:white; width:auto; padding:12px 20px; margin:0;}
+.btn-map:hover { background:#153a63; box-shadow:0 4px 15px rgba(26,74,124,0.3); transform:translateY(-2px); }
 
-/* ── MAP STATUS ── */
-.map-status {
-    font-size:0.75rem;
-    color:#555;
-    font-family:monospace;
-    text-align:center;
-    padding:8px;
-}
-.map-status.loading { color:#1a6cff; }
+/* MAP STATUS */
+.map-status { font-size:0.85rem; font-weight:bold; text-align:center; padding:10px; margin-bottom: 10px;}
+.map-status.loading { color:var(--primary); }
 .map-status.success { color:var(--secondary); }
 .map-status.error   { color:var(--danger); }
 
-/* ── DISCLAIMER ── */
-.disclaimer {
-    background:rgba(243,156,18,0.08);
-    border:1px solid rgba(243,156,18,0.25);
-    border-radius:10px;
-    padding:14px 16px;
-    font-size:0.82rem;
-    color:var(--accent);
-    margin-bottom:16px;
-    line-height:1.6;
-}
+/* DISCLAIMER */
+.disclaimer { background:#fff3cd; border:1px solid #ffeeba; border-radius:8px; padding:15px; font-size:0.9rem; color:#856404; margin-bottom:20px; line-height:1.6; font-weight: 500;}
 
-/* ── SUMMARY TABLE ── */
-.summary-row {
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    padding:8px 0;
-    border-bottom:1px solid rgba(255,255,255,0.04);
-    font-size:0.86rem;
-    gap:12px;
-}
+/* SUMMARY TABLE */
+.summary-section { background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:20px; margin-bottom:20px; text-align:left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+.summary-row { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #f9f9f9; font-size:0.95rem; gap:12px; }
 .summary-row:last-child { border-bottom:none; }
-.summary-row .key { color:#555; font-family:monospace; font-size:0.78rem; flex-shrink:0; }
-.summary-row .val { color:#ccc; font-weight:500; text-align:right; }
+.summary-row .key { color:#666; font-weight: bold; flex-shrink:0;}
+.summary-row .val { color:#222; font-weight:500; text-align:right; }
 </style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
 <header>
     <h1>Global Breath-Link Initiative</h1>
     <p>Democratizing Lung Health: A Triage-to-Treatment Ecosystem</p>
 </header>
 
-<!-- ── NAV BAR ── -->
-<div class="top-nav">
-    <a href="index.html">🏠 Home</a>
-    <a href="index.html">🫁 Awareness Simulator</a>
-    <a href="detection.html">🔬 AI Acoustic Biopsy</a>
-    <a href="treatment.html" class="active">💊 Treatment Plan</a>
+<div style="background:#f8f9fa; border-bottom:1px solid #ddd; padding:15px 20px; display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
+    <a href="index.html"     style="color:#555; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='transparent'">🏠 Home</a>
+    <a href="index.html"     style="color:#555; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='transparent'">🫁 Awareness Simulator</a>
+    <a href="detection.html" style="color:#555; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='transparent'">🔬 AI Acoustic Biopsy</a>
+    <a href="treatment.html" style="color:var(--primary); text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; background:#e8f4fd; border:1px solid #b8daff;">💊 Treatment Plan</a>
 </div>
 
-<!-- ── MAIN CONTENT ── -->
-<div class="treat-wrap">
+<div class="container" id="mainContent">
+    <div class="treatment-wrap">
 
-    <!-- PAGE HEADER -->
-    <div style="text-align:center; margin-bottom:40px; padding-top:10px;">
-        <div style="display:inline-block; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3); border-radius:20px; padding:5px 16px; font-size:0.75rem; color:var(--secondary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; font-family:monospace;">PERSONALIZED CARE PATHWAY</div>
-        <h2 style="font-size:2rem; margin-bottom:10px; color:white;">3. Your Treatment Plan</h2>
-        <p style="color:#666; max-width:560px; margin:auto; line-height:1.7; font-size:0.95rem;">Turning your AI risk score into real clinical next steps — from tests to care providers near you.</p>
-    </div>
-
-    <!-- RISK SCORE CARD -->
-    <div class="treat-card risk-box">
-        <div style="font-size:0.7rem; color:#555; letter-spacing:0.12em; text-transform:uppercase; font-family:monospace; margin-bottom:6px;">Your Triage Score</div>
-        <div class="risk-score" id="score" style="color:var(--secondary);">--</div>
-        <div><span class="risk-badge" id="riskBadge" style="background:rgba(39,174,96,0.12); color:var(--secondary); border:1px solid rgba(39,174,96,0.3);">Loading...</span></div>
-        <p id="riskDesc" style="color:#888; font-size:0.88rem; margin-top:14px; max-width:500px; margin-left:auto; margin-right:auto; line-height:1.6;"></p>
-        <div id="noScoreWarning" style="display:none; margin-top:14px; background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.3); border-radius:10px; padding:12px 16px; font-size:0.82rem; color:var(--accent);">
-            ⚠️ No cough analysis found. <a href="detection.html" style="color:#1a6cff;">Run the AI Acoustic Biopsy first</a> to get your personalised score.
-        </div>
-    </div>
-
-    <!-- CLINICAL NEXT STEPS -->
-    <div class="treat-card">
-        <div class="treat-title">Recommended Clinical Steps</div>
-        <ul class="steps-list" id="stepsList"></ul>
-    </div>
-
-    <!-- FIND CARE — GOOGLE MAPS -->
-    <div class="treat-card">
-        <div class="treat-title">Find Healthcare Near You</div>
-
-        <div class="map-search-row">
-            <input class="map-input" type="text" id="locationInput" placeholder="Enter your city, postcode, or address…" onkeydown="if(event.key==='Enter') findCare()">
-            <button class="btn btn-map" style="width:auto; padding:12px 20px; margin:0;" onclick="findCare()">📍 Search</button>
-            <button class="btn btn-outline" style="width:auto; padding:12px 20px; margin:0;" onclick="useMyLocation()">🎯 My Location</button>
+        <div style="text-align:center; margin-bottom:40px; padding-top:10px;">
+            <div style="display:inline-block; background:#e8f4fd; border:1px solid var(--primary); border-radius:20px; padding:6px 18px; font-size:0.8rem; font-weight: bold; color:var(--primary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px;">PERSONALIZED CARE PATHWAY</div>
+            <h2 style="font-size:2.2rem; margin-top:0; margin-bottom:15px; color:var(--primary);">3. Your Treatment Plan</h2>
+            <p style="color:#555; max-width:600px; margin:auto; line-height:1.6; font-size:1.05rem;">Turning your AI risk score into real clinical next steps — from tests to care providers near you.</p>
         </div>
 
-        <div class="map-filter-row">
-            <button class="filter-btn active" data-type="hospital" onclick="setFilter(this,'hospital')">🏥 Hospitals</button>
-            <button class="filter-btn" data-type="doctor" onclick="setFilter(this,'doctor')">👨‍⚕️ Doctors</button>
-            <button class="filter-btn" data-type="physiotherapist" onclick="setFilter(this,'physiotherapist')">🫁 Pulmonology</button>
-            <button class="filter-btn" data-type="pharmacy" onclick="setFilter(this,'pharmacy')">💊 Pharmacy</button>
-        </div>
-
-        <div id="mapStatus" class="map-status">Enter a location above or allow location access to find providers near you.</div>
-        <div id="map">
-            <div class="map-placeholder">
-                <div class="map-icon">🗺️</div>
-                <p>MAP WILL LOAD HERE</p>
-                <p style="font-size:0.75rem;">Search or use My Location to find care near you</p>
+        <div class="card risk-box" style="border-top-color: var(--secondary);">
+            <div style="font-size:0.8rem; color:#888; font-weight: bold; letter-spacing:0.1em; text-transform:uppercase;">Your Triage Score</div>
+            <div class="risk-score" id="score" style="color:var(--secondary);">--</div>
+            <div><span class="risk-badge" id="riskBadge" style="background:rgba(39,174,96,0.12); color:var(--secondary); border:1px solid rgba(39,174,96,0.3);">Loading...</span></div>
+            <p id="riskDesc" style="color:#666; font-size:1rem; margin-top:14px; max-width:500px; margin-left:auto; margin-right:auto; line-height:1.6;"></p>
+            
+            <div id="noScoreWarning" style="display:none; margin-top:20px; background:#fff3cd; border:1px solid #ffeeba; border-radius:8px; padding:15px; font-size:0.95rem; color:#856404; font-weight: 500;">
+                ⚠️ No cough analysis found. <a href="detection.html" style="color:var(--primary); font-weight: bold;">Run the AI Acoustic Biopsy first</a> to get your personalised score.
             </div>
         </div>
 
-        <div id="mapResultsList" class="map-results-list"></div>
-    </div>
+        <div class="card" style="border-top-color: var(--primary); margin-bottom: 20px;">
+            <div class="treat-title">Recommended Clinical Steps</div>
+            <ul class="steps-list" id="stepsList"></ul>
+        </div>
 
-    <!-- TREATMENT & MEDICATION GUIDE -->
-    <div class="treat-card">
-        <div class="treat-title">Treatment &amp; Medication Guide</div>
-        <div class="treatment-grid">
-            <div class="tx-item">
-                <div class="tx-item-title">💨 Inhalers &amp; Bronchodilators</div>
-                <div class="tx-item-body">Help open airways and reduce inflammation. Short-acting (SABA) for quick relief; long-acting (LABA/LAMA) for daily management.</div>
+        <div class="card" style="border-top-color: var(--accent); margin-bottom: 20px;">
+            <div class="treat-title">Find Healthcare Near You</div>
+
+            <div class="map-search-row">
+                <input class="map-input" type="text" id="locationInput" placeholder="Enter your city, postcode, or address…" onkeydown="if(event.key==='Enter') findCare()">
+                <button class="btn btn-map" onclick="findCare()">📍 Search</button>
+                <button class="btn btn-outline" style="width:auto; padding:12px 20px; margin:0;" onclick="useMyLocation()">🎯 My Location</button>
             </div>
-            <div class="tx-item">
-                <div class="tx-item-title">🫁 COPD / Spirometry</div>
-                <div class="tx-item-body">Spirometry measures airflow to diagnose obstruction or restriction. COPD is managed with bronchodilators, steroids, and pulmonary rehab.</div>
+
+            <div class="map-filter-row">
+                <button class="filter-btn active" data-type="hospital" onclick="setFilter(this,'hospital')">🏥 Hospitals</button>
+                <button class="filter-btn" data-type="doctor" onclick="setFilter(this,'doctor')">👨‍⚕️ Doctors</button>
+                <button class="filter-btn" data-type="physiotherapist" onclick="setFilter(this,'physiotherapist')">🫁 Pulmonology</button>
+                <button class="filter-btn" data-type="pharmacy" onclick="setFilter(this,'pharmacy')">💊 Pharmacy</button>
             </div>
-            <div class="tx-item">
-                <div class="tx-item-title">🩻 Low-Dose CT (LDCT)</div>
-                <div class="tx-item-body">Recommended for high-risk individuals. LDCT screening detects early lung nodules before symptoms appear — annual screening advised for 50–80-year-old smokers.</div>
+
+            <div id="mapStatus" class="map-status">Enter a location above or allow location access to find providers near you.</div>
+            <div id="map">
+                <div class="map-placeholder">
+                    <div class="map-icon">🗺️</div>
+                    <p style="font-weight: bold;">MAP WILL LOAD HERE</p>
+                    <p style="font-size:0.85rem; margin-top: -10px;">Search or use My Location to find care near you</p>
+                </div>
             </div>
-            <div class="tx-item">
-                <div class="tx-item-title">👩‍⚕️ Pulmonologist Referral</div>
-                <div class="tx-item-body">A lung specialist who manages chronic respiratory disease, reads CT/X-rays, and coordinates specialist care including biopsies if needed.</div>
-            </div>
-            <div class="tx-item">
-                <div class="tx-item-title">🧬 Genetic Counselling</div>
-                <div class="tx-item-body">If Alpha-1 Antitrypsin deficiency (AAT) is suspected, a blood test confirms the diagnosis. Augmentation therapy can slow progression.</div>
-            </div>
-            <div class="tx-item">
-                <div class="tx-item-title">🌬️ Pulmonary Rehab</div>
-                <div class="tx-item-body">Supervised exercise and education programme proven to reduce breathlessness, improve quality of life, and cut hospital admissions in COPD patients.</div>
+
+            <div id="mapResultsList" class="map-results-list"></div>
+        </div>
+
+        <div class="card" style="border-top-color: #ddd; margin-bottom: 20px;">
+            <div class="treat-title">Treatment & Medication Guide</div>
+            <div class="treatment-grid">
+                <div class="tx-item">
+                    <div class="tx-item-title">💨 Inhalers & Bronchodilators</div>
+                    <div class="tx-item-body">Help open airways and reduce inflammation. Short-acting (SABA) for quick relief; long-acting (LABA/LAMA) for daily management.</div>
+                </div>
+                <div class="tx-item">
+                    <div class="tx-item-title">🫁 COPD / Spirometry</div>
+                    <div class="tx-item-body">Spirometry measures airflow to diagnose obstruction or restriction. COPD is managed with bronchodilators, steroids, and pulmonary rehab.</div>
+                </div>
+                <div class="tx-item">
+                    <div class="tx-item-title">🩻 Low-Dose CT (LDCT)</div>
+                    <div class="tx-item-body">Recommended for high-risk individuals. LDCT screening detects early lung nodules before symptoms appear — annual screening advised for 50–80-year-old smokers.</div>
+                </div>
+                <div class="tx-item">
+                    <div class="tx-item-title">👩‍⚕️ Pulmonologist Referral</div>
+                    <div class="tx-item-body">A lung specialist who manages chronic respiratory disease, reads CT/X-rays, and coordinates specialist care including biopsies if needed.</div>
+                </div>
+                <div class="tx-item">
+                    <div class="tx-item-title">🧬 Genetic Counselling</div>
+                    <div class="tx-item-body">If Alpha-1 Antitrypsin deficiency (AAT) is suspected, a blood test confirms the diagnosis. Augmentation therapy can slow progression.</div>
+                </div>
+                <div class="tx-item">
+                    <div class="tx-item-title">🌬️ Pulmonary Rehab</div>
+                    <div class="tx-item-body">Supervised exercise and education programme proven to reduce breathlessness, improve quality of life, and cut hospital admissions in COPD patients.</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- LIFESTYLE ACTION PLAN -->
-    <div class="treat-card">
-        <div class="treat-title">Lifestyle Action Plan</div>
-        <ul class="lifestyle-list" id="lifestyleList"></ul>
-    </div>
-
-    <!-- DOCTOR SUMMARY / DOWNLOAD -->
-    <div class="treat-card">
-        <div class="treat-title">Doctor Summary</div>
-        <div class="disclaimer">
-            ⚠️ <strong>Important:</strong> This treatment pathway is generated by a prototype pre-screening tool and does not constitute medical advice. Always consult a qualified healthcare provider before making clinical decisions.
+        <div class="card" style="border-top-color: var(--secondary); margin-bottom: 20px;">
+            <div class="treat-title">Lifestyle Action Plan</div>
+            <ul class="lifestyle-list" id="lifestyleList"></ul>
         </div>
-        <div id="summaryTable" style="margin-bottom:16px;"></div>
-        <button class="btn btn-primary" onclick="downloadReport()">⬇ Download "Take This To Your Doctor" Report</button>
-        <a href="detection.html"><button class="btn btn-outline" style="margin-top:8px;">← Re-run AI Acoustic Biopsy</button></a>
-    </div>
 
+        <div class="card" style="border-top-color: #333; margin-bottom: 20px;">
+            <div class="treat-title">Doctor Summary</div>
+            <div class="disclaimer">
+                ⚠️ <strong>Important:</strong> This treatment pathway is generated by a prototype pre-screening tool and does not constitute medical advice. Always consult a qualified healthcare provider before making clinical decisions.
+            </div>
+            <div class="summary-section" id="summaryTable" style="margin-bottom:16px;"></div>
+            <button class="btn btn-primary" onclick="downloadReport()">⬇ Download "Take This To Your Doctor" Report</button>
+            <a href="detection.html" style="text-decoration: none;"><button class="btn btn-outline" style="margin-top:15px;">← Re-run AI Acoustic Biopsy</button></a>
+        </div>
+
+    </div>
 </div>
 
 <footer>
-    <p>&copy; 2026 Global Breath-Link Initiative | Proposed by Ashrita Nagalla &amp; Akhil Nagalla</p>
-    <p style="margin-top:10px; font-size:0.9rem;">📧 Contact us: <a href="mailto:contact@breathlink.org" style="color:#27ae60; text-decoration:none;">contact@breathlink.org</a></p>
+    <p>© 2026 Global Breath-Link Initiative | Proposed by Ashrita Nagalla & Akhil Nagalla</p>
+    <p style="margin-top:10px; font-size:0.9rem;">📧 Contact us: <a href="mailto:contact@breathlink.org" style="color:var(--secondary); text-decoration:none; font-weight: bold;">contact@breathlink.org</a></p>
 </footer>
 
-<!-- NOTE: Replace YOUR_GOOGLE_MAPS_API_KEY with your real key from console.cloud.google.com
-     Enable: Maps JavaScript API + Places API -->
 <script>
 const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
 
@@ -443,7 +264,7 @@ if (score === null) {
     // No analysis done yet — show warning, use neutral defaults
     document.getElementById('noScoreWarning').style.display = 'block';
     score = 0;
-    riskColor = '#555'; riskWord = 'NO DATA';
+    riskColor = '#666'; riskWord = 'NO DATA';
     riskDesc = 'No cough analysis found. Please complete the AI Acoustic Biopsy first.';
     steps = ['Complete the AI Acoustic Biopsy on the Detection page to get personalised clinical steps.'];
     lifestyle = [{ icon:'🔬', text:'Run the AI Acoustic Biopsy — record your cough to get a real triage score.' }];
@@ -614,24 +435,10 @@ function initMap(lat, lng) {
     const container = document.getElementById('map');
     container.innerHTML = '';
 
+    // Render map in light theme (removed dark styles array)
     map = new google.maps.Map(container, {
         center: { lat, lng },
-        zoom: 13,
-        styles: [
-            { elementType:'geometry', stylers:[{color:'#0f1c2e'}] },
-            { elementType:'labels.text.stroke', stylers:[{color:'#0f1c2e'}] },
-            { elementType:'labels.text.fill', stylers:[{color:'#746855'}] },
-            { featureType:'administrative.locality', elementType:'labels.text.fill', stylers:[{color:'#d59563'}] },
-            { featureType:'road', elementType:'geometry', stylers:[{color:'#38414e'}] },
-            { featureType:'road', elementType:'geometry.stroke', stylers:[{color:'#212a37'}] },
-            { featureType:'road', elementType:'labels.text.fill', stylers:[{color:'#9ca5b3'}] },
-            { featureType:'road.highway', elementType:'geometry', stylers:[{color:'#746855'}] },
-            { featureType:'water', elementType:'geometry', stylers:[{color:'#17263c'}] },
-            { featureType:'water', elementType:'labels.text.fill', stylers:[{color:'#515c6d'}] },
-            { featureType:'poi', elementType:'labels.text.fill', stylers:[{color:'#d59563'}] },
-            { featureType:'poi.park', elementType:'geometry', stylers:[{color:'#263c3f'}] },
-            { featureType:'transit', elementType:'geometry', stylers:[{color:'#2f3948'}] },
-        ]
+        zoom: 13
     });
 
     infoWindow = new google.maps.InfoWindow();
@@ -680,7 +487,7 @@ function searchNearby(lat, lng) {
             results.slice(0, 8).forEach((place, i) => addResult(place, cfg, i));
         } else {
             setMapStatus('error', '⚠ No results found — try a different filter or location.');
-            document.getElementById('mapResultsList').innerHTML = `<div style="color:#555; font-size:0.85rem; text-align:center; padding:16px;">No providers found for this filter nearby. Try a different category or widen your search.</div>`;
+            document.getElementById('mapResultsList').innerHTML = `<div style="color:#666; font-size:0.9rem; text-align:center; padding:16px;">No providers found for this filter nearby. Try a different category or widen your search.</div>`;
         }
     });
 }
@@ -709,9 +516,9 @@ function addResult(place, cfg, index) {
         infoWindow.setContent(`
             <div style="font-family:'Segoe UI',sans-serif; padding:4px; max-width:220px;">
                 <strong style="color:#333;">${place.name}</strong><br>
-                <span style="color:#777; font-size:0.8rem;">${place.vicinity || ''}</span><br>
+                <span style="color:#666; font-size:0.8rem;">${place.vicinity || ''}</span><br>
                 ${place.rating ? `<span style="color:#f39c12;">★ ${place.rating}</span> ` : ''}
-                ${place.opening_hours?.isOpen?.() ? '<span style="color:#27ae60; font-size:0.8rem;">Open now</span>' : ''}
+                ${place.opening_hours?.isOpen?.() ? '<span style="color:#27ae60; font-size:0.8rem; font-weight:bold;">Open now</span>' : ''}
             </div>`);
         infoWindow.open(map, marker);
     });
@@ -726,8 +533,8 @@ function addResult(place, cfg, index) {
             <div class="result-name">${index + 1}. ${place.name}</div>
             <div class="result-address">${place.vicinity || 'Address not available'}</div>
             ${place.rating ? `<div class="result-distance" style="color:#f39c12;">★ ${place.rating} / 5</div>` : ''}
-            <span class="result-badge" style="background:${cfg.badgeColor}22; color:${cfg.badgeColor}; border:1px solid ${cfg.badgeColor}44;">${cfg.badge}</span>
-            ${place.opening_hours?.isOpen?.() ? '<span class="result-badge" style="background:#27ae6022; color:#27ae60; border:1px solid #27ae6044; margin-left:4px;">Open Now</span>' : ''}
+            <span class="result-badge" style="background:${cfg.badgeColor}15; color:${cfg.badgeColor}; border:1px solid ${cfg.badgeColor}33;">${cfg.badge}</span>
+            ${place.opening_hours?.isOpen?.() ? '<span class="result-badge" style="background:#27ae6015; color:#27ae60; border:1px solid #27ae6033; margin-left:6px;">Open Now</span>' : ''}
         </div>`;
     div.onclick = () => {
         map.setCenter({ lat, lng });
@@ -753,10 +560,10 @@ function showNoKeyMessage() {
     container.innerHTML = `
         <div class="map-placeholder">
             <div class="map-icon">🗺️</div>
-            <p style="color:#f39c12; font-weight:bold;">Google Maps API Key Required</p>
-            <p style="font-size:0.8rem; color:#666; max-width:320px; text-align:center; line-height:1.6;">
+            <p style="color:#f39c12; font-weight:bold; margin-bottom: 0;">Google Maps API Key Required</p>
+            <p style="font-size:0.85rem; color:#666; max-width:320px; text-align:center; line-height:1.6; margin-top: 5px;">
                 Add your Google Maps API key in treatment.html.<br>
-                Get a free key at <strong style="color:#1a6cff;">console.cloud.google.com</strong><br>
+                Get a free key at <strong style="color:var(--primary);">console.cloud.google.com</strong><br>
                 Enable: Maps JavaScript API + Places API
             </p>
         </div>`;
@@ -767,12 +574,12 @@ function showNoKeyMessage() {
 function showFallbackResults() {
     const loc = document.getElementById('locationInput').value || 'your area';
     document.getElementById('mapResultsList').innerHTML = `
-        <div style="color:#555; font-size:0.82rem; padding:12px; background:#060e1a; border:1px solid rgba(255,255,255,0.05); border-radius:10px; line-height:1.7;">
-            <strong style="color:#888;">Suggested search links for ${loc}:</strong><br>
-            <a href="https://www.google.com/maps/search/hospital+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">🏥 Hospitals near ${loc}</a><br>
-            <a href="https://www.google.com/maps/search/pulmonologist+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">🫁 Pulmonologists near ${loc}</a><br>
-            <a href="https://www.google.com/maps/search/respiratory+clinic+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">🔬 Respiratory clinics near ${loc}</a><br>
-            <a href="https://www.google.com/maps/search/pharmacy+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">💊 Pharmacies near ${loc}</a>
+        <div style="color:#444; font-size:0.9rem; padding:15px; background:#f9f9f9; border:1px solid #eee; border-radius:8px; line-height:1.8;">
+            <strong style="color:#333;">Suggested search links for ${loc}:</strong><br>
+            <a href="https://www.google.com/maps/search/hospital+near+${encodeURIComponent(loc)}" target="_blank" style="color:var(--primary); text-decoration: none; font-weight: 500;">🏥 Hospitals near ${loc}</a><br>
+            <a href="https://www.google.com/maps/search/pulmonologist+near+${encodeURIComponent(loc)}" target="_blank" style="color:var(--primary); text-decoration: none; font-weight: 500;">🫁 Pulmonologists near ${loc}</a><br>
+            <a href="https://www.google.com/maps/search/respiratory+clinic+near+${encodeURIComponent(loc)}" target="_blank" style="color:var(--primary); text-decoration: none; font-weight: 500;">🔬 Respiratory clinics near ${loc}</a><br>
+            <a href="https://www.google.com/maps/search/pharmacy+near+${encodeURIComponent(loc)}" target="_blank" style="color:var(--primary); text-decoration: none; font-weight: 500;">💊 Pharmacies near ${loc}</a>
         </div>`;
 }
 

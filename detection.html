@@ -3,141 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Breath-Link Initiative — AI Acoustic Biopsy</title>
+<title>AI Acoustic Biopsy - Global Breath-Link</title>
 <link rel="stylesheet" href="style.css">
 <style>
-#detectionContent {
-    background: var(--dark);
-    color: white;
-    padding: 40px 20px;
-    min-height: 80vh;
-}
-.detection-wrap { max-width: 860px; margin: 0 auto; }
+/* DETECTION SPECIFIC STYLES - ADAPTED FOR LIGHT THEME */
+.detection-wrap { max-width: 860px; margin: 0 auto; padding: 20px 0; }
 
 /* STEPS */
 .steps { display:flex; justify-content:center; gap:0; margin-bottom:40px; position:relative; }
-.steps::before { content:''; position:absolute; top:18px; left:15%; right:15%; height:1px; background:rgba(39,174,96,0.2); }
+.steps::before { content:''; position:absolute; top:18px; left:15%; right:15%; height:2px; background:#e0e0e0; z-index: 0; }
 .step { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; position:relative; z-index:1; }
-.step-dot { width:36px; height:36px; border-radius:50%; border:2px solid rgba(39,174,96,0.2); background:#111; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#666; transition:all 0.4s; }
-.step.active .step-dot { border-color:var(--secondary); background:rgba(39,174,96,0.12); color:var(--secondary); box-shadow:0 0 16px rgba(39,174,96,0.3); }
-.step.done .step-dot { border-color:var(--secondary); background:var(--secondary); color:var(--dark); }
-.step-label { font-size:0.72rem; color:#555; text-transform:uppercase; letter-spacing:0.06em; }
-.step.active .step-label { color:var(--secondary); }
+.step-dot { width:36px; height:36px; border-radius:50%; border:2px solid #ccc; background:#fff; display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:bold; color:#999; transition:all 0.4s; }
+.step.active .step-dot { border-color:var(--secondary); background:#e8f4fd; color:var(--primary); box-shadow:0 0 12px rgba(39,174,96,0.2); }
+.step.done .step-dot { border-color:var(--secondary); background:var(--secondary); color:white; }
+.step-label { font-size:0.75rem; color:#777; text-transform:uppercase; letter-spacing:0.06em; font-weight: bold; }
+.step.active .step-label { color:var(--primary); }
 
 /* PANELS */
 .det-panel { display:none; animation:fadeUp 0.4s ease; }
 .det-panel.active { display:block; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 
-/* CARDS */
-.det-card { background:#0f1c2e; border:1px solid rgba(39,174,96,0.15); border-radius:16px; padding:32px; margin-bottom:20px; position:relative; overflow:hidden; }
-.det-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--secondary),transparent); }
-.det-card-title { font-size:1.1rem; font-weight:700; color:white; margin-bottom:4px; }
-.det-card-sub { font-size:0.78rem; color:#555; margin-bottom:24px; font-family:monospace; letter-spacing:0.04em; }
+/* CARD OVERRIDES FOR DETECTION */
+.det-card-sub { font-size:0.8rem; color:#888; margin-bottom:20px; font-family:monospace; letter-spacing:0.04em; }
 
 /* SCIENCE TAGS */
 .science-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
-.sci-tag { font-size:0.7rem; color:#1a6cff; border:1px solid rgba(26,108,255,0.3); background:rgba(26,108,255,0.06); padding:4px 10px; border-radius:20px; }
+.sci-tag { font-size:0.75rem; color:var(--primary); border:1px solid rgba(26,74,124,0.3); background:#e8f4fd; padding:6px 12px; border-radius:20px; font-weight: bold;}
 
 /* WAVEFORM */
-.waveform-container { width:100%; background:#060e1a; border-radius:12px; border:1px solid rgba(39,174,96,0.15); overflow:hidden; height:100px; position:relative; margin-bottom:24px; }
+.waveform-container { width:100%; background:#f8f9fa; border-radius:8px; border:1px solid #ddd; overflow:hidden; height:100px; position:relative; margin-bottom:24px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
 #waveCanvas { width:100%; height:100px; display:block; }
-.waveform-label { position:absolute; top:8px; left:12px; font-size:0.65rem; color:#444; letter-spacing:0.1em; font-family:monospace; }
+.waveform-label { position:absolute; top:8px; left:12px; font-size:0.7rem; color:#666; letter-spacing:0.1em; font-family:monospace; font-weight: bold; }
 
 /* RECORDER */
-.recorder-area { display:flex; flex-direction:column; align-items:center; gap:20px; }
-.record-btn { width:110px; height:110px; border-radius:50%; border:3px solid var(--secondary); background:rgba(39,174,96,0.1); color:var(--secondary); font-size:2.2rem; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; }
-.record-btn:hover { background:rgba(39,174,96,0.2); box-shadow:0 0 40px rgba(39,174,96,0.3); transform:scale(1.05); }
-.record-btn.recording { border-color:var(--danger); background:rgba(231,76,60,0.12); color:var(--danger); animation:pulse-red 1.2s infinite; }
-.record-btn.analyzing { border-color:#1a6cff; background:rgba(26,108,255,0.12); color:#1a6cff; animation:pulse-blue 1s infinite; }
-@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.4)} 50%{box-shadow:0 0 0 20px rgba(231,76,60,0)} }
-@keyframes pulse-blue { 0%,100%{box-shadow:0 0 0 0 rgba(26,108,255,0.4)} 50%{box-shadow:0 0 0 20px rgba(26,108,255,0)} }
-.record-status { font-size:0.88rem; color:#666; text-align:center; min-height:40px; line-height:1.6; }
+.recorder-area { display:flex; flex-direction:column; align-items:center; gap:15px; }
+.record-btn { width:90px; height:90px; border-radius:50%; border:3px solid var(--secondary); background:#f0f8f0; color:var(--secondary); font-size:2rem; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.record-btn:hover { background:var(--secondary); color:white; transform:scale(1.05); }
+.record-btn.recording { border-color:var(--danger); background:#ffebeb; color:var(--danger); animation:pulse-red 1.2s infinite; }
+.record-btn.analyzing { border-color:var(--primary); background:#e8f4fd; color:var(--primary); animation:pulse-blue 1s infinite; }
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.4)} 50%{box-shadow:0 0 0 15px rgba(231,76,60,0)} }
+@keyframes pulse-blue { 0%,100%{box-shadow:0 0 0 0 rgba(26,74,124,0.4)} 50%{box-shadow:0 0 0 15px rgba(26,74,124,0)} }
+.record-status { font-size:0.9rem; color:#555; text-align:center; min-height:40px; line-height:1.6; font-weight: 500;}
 .record-timer { font-size:2rem; font-weight:bold; color:var(--danger); display:none; font-family:monospace; }
 
 /* INSTRUCTIONS */
 .instructions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-.instr-item { display:flex; align-items:center; gap:8px; background:#060e1a; border:1px solid rgba(39,174,96,0.12); border-radius:10px; padding:10px 14px; font-size:0.82rem; color:#888; }
-.instr-num { width:22px; height:22px; border-radius:50%; background:rgba(39,174,96,0.1); border:1px solid var(--secondary); color:var(--secondary); font-size:0.7rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.instr-item { display:flex; align-items:center; gap:8px; background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:10px 14px; font-size:0.9rem; color:#444; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+.instr-num { width:24px; height:24px; border-radius:50%; background:#f0f8f0; border:1px solid var(--secondary); color:var(--secondary); font-size:0.8rem; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 /* FORM */
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
-.form-group { display:flex; flex-direction:column; gap:8px; }
-.form-group label { font-size:0.75rem; color:#666; letter-spacing:0.08em; text-transform:uppercase; font-family:monospace; }
-.form-group select, .form-group input[type="number"] { background:#060e1a; border:1px solid rgba(39,174,96,0.2); border-radius:10px; color:white; padding:12px 14px; font-family:'Segoe UI',Tahoma,sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; appearance:none; }
-.form-group select:focus, .form-group input:focus { border-color:var(--secondary); }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group label { font-size:0.8rem; color:#555; letter-spacing:0.05em; text-transform:uppercase; font-weight: bold; }
+.form-group select, .form-group input[type="number"] { background:#fff; border:1px solid #ccc; border-radius:6px; color:#333; padding:10px 12px; font-family:'Segoe UI',Tahoma,sans-serif; font-size:1rem; outline:none; transition:border-color 0.2s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+.form-group select:focus, .form-group input:focus { border-color:var(--secondary); box-shadow: 0 0 5px rgba(39,174,96,0.3); }
 .radio-group { display:flex; gap:8px; }
 .radio-opt { flex:1; }
 .radio-opt input { display:none; }
-.radio-opt label { display:block; text-align:center; padding:10px 6px; background:#060e1a; border:1px solid rgba(39,174,96,0.15); border-radius:10px; cursor:pointer; font-size:0.82rem; color:#777; transition:all 0.2s; text-transform:none; letter-spacing:0; }
-.radio-opt input:checked + label { border-color:var(--secondary); color:var(--secondary); background:rgba(39,174,96,0.1); }
+.radio-opt label { display:block; text-align:center; padding:10px 6px; background:#f9f9f9; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:0.9rem; color:#555; transition:all 0.2s; font-weight: 500;}
+.radio-opt input:checked + label { border-color:var(--secondary); color:var(--secondary); background:#f0f8f0; font-weight: bold;}
 
 /* BUTTONS */
-.det-btn { display:block; width:100%; padding:14px; border-radius:10px; border:none; font-size:0.95rem; font-weight:bold; cursor:pointer; transition:all 0.2s; margin-top:20px; font-family:'Segoe UI',Tahoma,sans-serif; }
+.det-btn { display:block; width:100%; padding:15px; border-radius:8px; border:none; font-size:1rem; font-weight:bold; cursor:pointer; transition:all 0.2s; margin-top:25px; font-family:'Segoe UI',Tahoma,sans-serif; }
 .det-btn-primary { background:var(--secondary); color:white; }
-.det-btn-primary:hover { background:#22c774; box-shadow:0 6px 24px rgba(39,174,96,0.3); }
-.det-btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
-.det-btn-outline { background:transparent; color:var(--secondary); border:1px solid var(--secondary); margin-top:10px; }
-.det-btn-outline:hover { background:rgba(39,174,96,0.1); }
+.det-btn-primary:hover { background:#22c774; box-shadow:0 4px 15px rgba(39,174,96,0.3); transform: translateY(-2px); }
+.det-btn-primary:disabled { background:#ccc; color:#888; cursor:not-allowed; box-shadow: none; transform: none;}
+.det-btn-outline { background:transparent; color:var(--primary); border:2px solid var(--primary); margin-top:15px; }
+.det-btn-outline:hover { background:#e8f4fd; }
 
 /* ANALYSIS */
 .analysis-center { text-align:center; padding:20px 0; }
-.analysis-visual { width:140px; height:140px; border-radius:50%; margin:0 auto 28px; position:relative; display:flex; align-items:center; justify-content:center; }
+.analysis-visual { width:120px; height:120px; border-radius:50%; margin:0 auto 28px; position:relative; display:flex; align-items:center; justify-content:center; background: #fdfdfd; box-shadow: 0 5px 15px rgba(0,0,0,0.05);}
 .analysis-ring { position:absolute; inset:0; border-radius:50%; border:3px solid transparent; animation:spin 2s linear infinite; }
 .ring1 { border-top-color:var(--secondary); border-right-color:var(--secondary); }
-.ring2 { inset:10px; border-bottom-color:#1a6cff; border-left-color:#1a6cff; animation-duration:1.5s; animation-direction:reverse; }
-.ring3 { inset:20px; border-top-color:var(--accent); animation-duration:3s; }
+.ring2 { inset:8px; border-bottom-color:var(--primary); border-left-color:var(--primary); animation-duration:1.5s; animation-direction:reverse; }
+.ring3 { inset:16px; border-top-color:var(--accent); animation-duration:3s; }
 @keyframes spin { to{transform:rotate(360deg)} }
-.analysis-icon { font-size:2.2rem; position:relative; z-index:1; }
-.analysis-log { background:#060e1a; border:1px solid rgba(39,174,96,0.15); border-radius:10px; padding:18px; text-align:left; font-family:monospace; font-size:0.78rem; color:#555; min-height:160px; max-height:260px; overflow-y:auto; }
-.log-line { margin-bottom:6px; animation:fadeIn 0.3s ease; }
-.log-line .ok   { color:var(--secondary); }
-.log-line .info { color:#1a6cff; }
-.log-line .warn { color:var(--accent); }
+.analysis-icon { font-size:2.5rem; position:relative; z-index:1; }
+.analysis-log { background:#f9f9f9; border:1px solid #eee; border-radius:8px; padding:20px; text-align:left; font-family:monospace; font-size:0.85rem; color:#444; min-height:160px; max-height:260px; overflow-y:auto; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);}
+.log-line { margin-bottom:8px; animation:fadeIn 0.3s ease; border-bottom: 1px dashed #eee; padding-bottom: 4px;}
+.log-line .ok   { color:var(--secondary); font-weight: bold;}
+.log-line .info { color:var(--primary); font-weight: bold;}
+.log-line .warn { color:var(--accent); font-weight: bold;}
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
 /* RESULTS */
 .risk-meter { position:relative; margin:0 auto 28px; width:260px; height:130px; }
 .risk-meter svg { width:100%; height:100%; }
 .risk-label-center { position:absolute; bottom:0; left:50%; transform:translateX(-50%); text-align:center; white-space:nowrap; }
-.risk-value { font-size:2rem; font-weight:900; line-height:1; }
-.risk-word  { font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; font-family:monospace; }
+.risk-value { font-size:2.5rem; font-weight:900; line-height:1; color: #333;}
+.risk-word  { font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; font-weight: bold; }
 
 /* KNN MATCHES */
 .knn-matches { margin-bottom:20px; }
-.knn-title { font-family:monospace; font-size:0.7rem; color:var(--secondary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px; }
-.knn-item { display:flex; align-items:center; gap:12px; padding:10px; background:#060e1a; border:1px solid rgba(39,174,96,0.1); border-radius:8px; margin-bottom:8px; font-size:0.82rem; }
-.knn-label { min-width:110px; color:#bbb; }
-.knn-bar-wrap { flex:1; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; }
-.knn-bar { height:100%; border-radius:3px; transition:width 1s ease; }
-.knn-dist { font-family:monospace; font-size:0.72rem; color:#555; min-width:50px; text-align:right; }
+.knn-title { font-size:0.8rem; color:#666; font-weight: bold; text-transform:uppercase; margin-bottom:12px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+.knn-item { display:flex; align-items:center; gap:12px; padding:12px; background:#fdfdfd; border:1px solid #eee; border-radius:6px; margin-bottom:8px; font-size:0.9rem; font-weight: 500;}
+.knn-label { min-width:140px; color:#333; }
+.knn-bar-wrap { flex:1; height:8px; background:#eee; border-radius:4px; overflow:hidden; }
+.knn-bar { height:100%; border-radius:4px; transition:width 1s ease; }
+.knn-dist { font-family:monospace; font-size:0.8rem; color:#777; min-width:60px; text-align:right; }
 
 /* FEATURES GRID */
-.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:25px; }
 @media(max-width:600px){.features-grid{grid-template-columns:1fr 1fr}}
-.feature-card { background:#060e1a; border:1px solid rgba(39,174,96,0.12); border-radius:10px; padding:14px; text-align:center; }
-.feature-name { font-size:0.62rem; color:#555; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px; font-family:monospace; }
-.feature-bar-wrap { height:3px; background:rgba(255,255,255,0.05); border-radius:2px; margin:6px 0; overflow:hidden; }
+.feature-card { background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:15px; text-align:center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+.feature-name { font-size:0.7rem; color:#777; font-weight: bold; text-transform:uppercase; margin-bottom:8px; }
+.feature-bar-wrap { height:4px; background:#eee; border-radius:2px; margin:10px 0; overflow:hidden; }
 .feature-bar { height:100%; border-radius:2px; transition:width 1.2s ease; }
-.feature-val { font-size:1rem; font-weight:700; }
+.feature-val { font-size:1.1rem; font-weight:700; color: #333;}
 
 /* SUMMARY */
-.summary-section { background:#060e1a; border:1px solid rgba(39,174,96,0.12); border-radius:12px; padding:20px; margin-bottom:16px; text-align:left; }
-.summary-title { font-size:0.68rem; color:var(--secondary); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px; font-family:monospace; }
-.summary-title::after { content:''; flex:1; height:1px; background:rgba(39,174,96,0.15); }
-.summary-row { display:flex; justify-content:space-between; align-items:flex-start; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.86rem; gap:12px; }
+.summary-section { background:#fdfdfd; border:1px solid #eee; border-radius:8px; padding:20px; margin-bottom:20px; text-align:left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+.summary-title { font-size:1rem; color:var(--primary); font-weight: bold; margin-top: 0; margin-bottom:15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+.summary-row { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #f9f9f9; font-size:0.95rem; gap:12px; }
 .summary-row:last-child { border-bottom:none; }
-.summary-row .key { color:#555; font-family:monospace; font-size:0.78rem; flex-shrink:0; }
-.summary-row .val { color:#ccc; font-weight:500; text-align:right; }
-.questions-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
-.questions-list li { display:flex; gap:10px; align-items:flex-start; font-size:0.86rem; color:#bbb; line-height:1.5; }
-.q-bullet { width:20px; height:20px; border-radius:50%; background:rgba(39,174,96,0.1); border:1px solid var(--secondary); color:var(--secondary); font-size:0.65rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-.disclaimer { background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.25); border-radius:10px; padding:14px 16px; font-size:0.82rem; color:var(--accent); margin-bottom:16px; line-height:1.6; }
+.summary-row .key { color:#666; font-weight: bold;}
+.summary-row .val { color:#222; font-weight:500; text-align:right; }
+.questions-list { list-style:none; padding: 0; display:flex; flex-direction:column; gap:12px; margin: 0;}
+.questions-list li { display:flex; gap:12px; align-items:flex-start; font-size:0.95rem; color:#444; line-height:1.5; background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #eee;}
+.q-bullet { width:24px; height:24px; border-radius:50%; background:#e8f4fd; border:1px solid var(--primary); color:var(--primary); font-size:0.8rem; font-weight: bold; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:0px; }
+.disclaimer { background:#fff3cd; border:1px solid #ffeeba; border-radius:8px; padding:15px; font-size:0.9rem; color:#856404; margin-bottom:20px; line-height:1.6; font-weight: 500;}
 
 /* CITATION BOX */
-.citation-box { background:rgba(26,108,255,0.06); border:1px solid rgba(26,108,255,0.2); border-radius:10px; padding:14px 16px; font-size:0.78rem; color:#888; margin-bottom:16px; line-height:1.7; }
-.citation-box strong { color:#1a6cff; }
+.citation-box { background:#e8f4fd; border:1px solid #b8daff; border-radius:8px; padding:15px; font-size:0.85rem; color:#004085; margin-bottom:20px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -147,205 +137,200 @@
     <p>Democratizing Lung Health: A Triage-to-Treatment Ecosystem</p>
 </header>
 
-<div style="background:#132238; border-bottom:1px solid rgba(39,174,96,0.15); padding:12px 20px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-    <a href="index.html"     style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">🏠 Home</a>
-    <a href="index.html" style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">🫁 Awareness Simulator</a>
-    <a href="detection.html" style="color:var(--secondary); text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3);">🔬 AI Acoustic Biopsy</a>
-    <a href="treatment.html" style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">💊 Treatment Plan</a>
+<div style="background:#f8f9fa; border-bottom:1px solid #ddd; padding:15px 20px; display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
+    <a href="index.html"     style="color:#555; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='transparent'">🏠 Home</a>
+    <a href="index.html"     style="color:#555; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='transparent'">🫁 Awareness Simulator</a>
+    <a href="detection.html" style="color:var(--primary); text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; background:#e8f4fd; border:1px solid #b8daff;">🔬 AI Acoustic Biopsy</a>
+    <a href="treatment.html" style="color:#555; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:0.9rem; font-weight: bold; transition: 0.2s;" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='transparent'">💊 Treatment Plan</a>
 </div>
 
-<div id="detectionContent">
-<div class="detection-wrap">
+<div class="container" id="mainContent">
+    <div class="detection-wrap">
 
-    <div style="text-align:center; margin-bottom:40px; padding-top:10px;">
-        <div style="display:inline-block; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3); border-radius:20px; padding:5px 16px; font-size:0.75rem; color:var(--secondary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; font-family:monospace;">PROTOTYPE v0.1 — KNN CLASSIFIER</div>
-        <h2 style="font-size:2rem; margin-bottom:10px; color:white;">2. AI Acoustic Biopsy</h2>
-        <p style="color:#666; max-width:560px; margin:auto; line-height:1.7; font-size:0.95rem;">Real cough audio feature extraction compared against a reference library derived from published COUGHVID &amp; Coswara respiratory research datasets using K-Nearest Neighbor classification.</p>
-    </div>
-
-    <div class="steps">
-        <div class="step active" id="s1"><div class="step-dot">01</div><div class="step-label">Record</div></div>
-        <div class="step"        id="s2"><div class="step-dot">02</div><div class="step-label">Profile</div></div>
-        <div class="step"        id="s3"><div class="step-dot">03</div><div class="step-label">Analysis</div></div>
-        <div class="step"        id="s4"><div class="step-dot">04</div><div class="step-label">Results</div></div>
-    </div>
-
-    <!-- ── PANEL 1: RECORD ── -->
-    <div class="det-panel active" id="panel1">
-        <div class="det-card">
-            <div class="det-card-title">Cough Audio Capture</div>
-            <div class="det-card-sub">// WEB AUDIO API · FFT · REAL-TIME SPECTRAL ANALYSIS</div>
-            <div class="science-bar">
-                <span class="sci-tag">FFT — 2048 bins</span>
-                <span class="sci-tag">RMS Energy</span>
-                <span class="sci-tag">Zero Crossing Rate</span>
-                <span class="sci-tag">Spectral Centroid</span>
-                <span class="sci-tag">Spectral Bandwidth</span>
-                <span class="sci-tag">Spectral Rolloff</span>
-                <span class="sci-tag">KNN Classifier</span>
-            </div>
-            <div class="waveform-container">
-                <span class="waveform-label">LIVE WAVEFORM</span>
-                <canvas id="waveCanvas" width="800" height="100"></canvas>
-            </div>
-            <div class="recorder-area">
-                <div class="record-timer" id="timer">0:00</div>
-                <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙️</button>
-                <div class="record-status" id="recordStatus">
-                    Press the microphone and perform <strong style="color:white;">3 forced coughs</strong>.<br>
-                    <span style="font-size:0.8rem;">Recording auto-stops after 8 seconds.</span>
-                </div>
-            </div>
+        <div style="text-align:center; margin-bottom:40px;">
+            <div style="display:inline-block; background:#e8f4fd; border:1px solid var(--primary); border-radius:20px; padding:6px 18px; font-size:0.8rem; font-weight: bold; color:var(--primary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px;">PROTOTYPE v0.1 — KNN CLASSIFIER</div>
+            <h2 style="font-size:2.2rem; margin-top: 0; margin-bottom:15px; color:var(--primary);">AI Acoustic Biopsy</h2>
+            <p style="color:#555; max-width:600px; margin:auto; line-height:1.6; font-size:1.05rem;">Real cough audio feature extraction compared against a reference library derived from published COUGHVID &amp; Coswara respiratory research datasets using K-Nearest Neighbor classification.</p>
         </div>
-        <div class="det-card">
-            <div class="det-card-title">How to Cough Correctly</div>
-            <div class="det-card-sub">// FOR BEST SIGNAL QUALITY</div>
-            <div class="instructions">
-                <div class="instr-item"><div class="instr-num">1</div>Sit upright, mic nearby</div>
-                <div class="instr-item"><div class="instr-num">2</div>Take a deep breath in</div>
-                <div class="instr-item"><div class="instr-num">3</div>Cough forcefully 3 times</div>
-                <div class="instr-item"><div class="instr-num">4</div>Wait — analysis runs automatically</div>
-            </div>
-        </div>
-        <button class="det-btn det-btn-primary" id="nextBtn1" disabled onclick="goTo(2)">Continue to Health Profile →</button>
-    </div>
 
-    <!-- ── PANEL 2: PROFILE ── -->
-    <div class="det-panel" id="panel2">
-        <div class="det-card">
-            <div class="det-card-title">Health Risk Profile</div>
-            <div class="det-card-sub">// COMBINED WITH ACOUSTIC SCORE FOR FINAL TRIAGE</div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Age</label>
-                    <input type="number" id="f_age" min="10" max="100" placeholder="e.g. 45">
+        <div class="steps">
+            <div class="step active" id="s1"><div class="step-dot">01</div><div class="step-label">Record</div></div>
+            <div class="step"        id="s2"><div class="step-dot">02</div><div class="step-label">Profile</div></div>
+            <div class="step"        id="s3"><div class="step-dot">03</div><div class="step-label">Analysis</div></div>
+            <div class="step"        id="s4"><div class="step-dot">04</div><div class="step-label">Results</div></div>
+        </div>
+
+        <div class="det-panel active" id="panel1">
+            <div class="card" style="border-top-color: var(--secondary); margin-bottom: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">Cough Audio Capture</h3>
+                <div class="det-card-sub">// WEB AUDIO API · FFT · REAL-TIME SPECTRAL ANALYSIS</div>
+                <div class="science-bar">
+                    <span class="sci-tag">FFT — 2048 bins</span>
+                    <span class="sci-tag">RMS Energy</span>
+                    <span class="sci-tag">Zero Crossing Rate</span>
+                    <span class="sci-tag">Spectral Centroid</span>
+                    <span class="sci-tag">Spectral Bandwidth</span>
+                    <span class="sci-tag">Spectral Rolloff</span>
+                    <span class="sci-tag">KNN Classifier</span>
                 </div>
-                <div class="form-group">
-                    <label>Biological Sex</label>
-                    <select id="f_sex">
-                        <option value="">Select...</option>
-                        <option>Male</option><option>Female</option><option>Prefer not to say</option>
-                    </select>
+                <div class="waveform-container">
+                    <span class="waveform-label">LIVE WAVEFORM</span>
+                    <canvas id="waveCanvas" width="800" height="100"></canvas>
                 </div>
-                <div class="form-group">
-                    <label>Smoking History</label>
-                    <select id="f_smoke">
-                        <option value="">Select...</option>
-                        <option value="0">Never smoked</option>
-                        <option value="1">Former smoker</option>
-                        <option value="2">Current smoker</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Years of Smoke/Dust Exposure</label>
-                    <input type="number" id="f_years" min="0" max="60" placeholder="e.g. 10">
-                </div>
-                <div class="form-group">
-                    <label>Persistent Cough Duration</label>
-                    <div class="radio-group">
-                        <div class="radio-opt"><input type="radio" name="cough" id="c0" value="0"><label for="c0">None</label></div>
-                        <div class="radio-opt"><input type="radio" name="cough" id="c1" value="1"><label for="c1">1–3 wks</label></div>
-                        <div class="radio-opt"><input type="radio" name="cough" id="c2" value="2"><label for="c2">3+ wks</label></div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Shortness of Breath</label>
-                    <div class="radio-group">
-                        <div class="radio-opt"><input type="radio" name="sob" id="sob0" value="0"><label for="sob0">No</label></div>
-                        <div class="radio-opt"><input type="radio" name="sob" id="sob1" value="1"><label for="sob1">Mild</label></div>
-                        <div class="radio-opt"><input type="radio" name="sob" id="sob2" value="2"><label for="sob2">Severe</label></div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Chest Pain or Tightness</label>
-                    <div class="radio-group">
-                        <div class="radio-opt"><input type="radio" name="chest" id="ch0" value="0"><label for="ch0">No</label></div>
-                        <div class="radio-opt"><input type="radio" name="chest" id="ch1" value="1"><label for="ch1">Yes</label></div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Indoor Cookfire / Smoke Exposure</label>
-                    <div class="radio-group">
-                        <div class="radio-opt"><input type="radio" name="cook" id="ck0" value="0"><label for="ck0">No</label></div>
-                        <div class="radio-opt"><input type="radio" name="cook" id="ck1" value="1"><label for="ck1">Yes</label></div>
+                <div class="recorder-area">
+                    <div class="record-timer" id="timer">0:00</div>
+                    <button class="record-btn" id="recordBtn" onclick="toggleRecord()">🎙️</button>
+                    <div class="record-status" id="recordStatus">
+                        Press the microphone and perform <strong style="color:var(--primary);">3 forced coughs</strong>.<br>
+                        <span style="font-size:0.85rem; color: #777;">Recording auto-stops after 8 seconds.</span>
                     </div>
                 </div>
             </div>
-            <button class="det-btn det-btn-primary" onclick="runAnalysis()">Run KNN Acoustic + Risk Analysis →</button>
-        </div>
-    </div>
-
-    <!-- ── PANEL 3: ANALYSIS ── -->
-    <div class="det-panel" id="panel3">
-        <div class="det-card" style="text-align:center;">
-            <div class="det-card-title">KNN Classifier Running</div>
-            <div class="det-card-sub">// COMPARING YOUR COUGH AGAINST REFERENCE LIBRARY</div>
-            <div class="analysis-center">
-                <div class="analysis-visual">
-                    <div class="analysis-ring ring1"></div>
-                    <div class="analysis-ring ring2"></div>
-                    <div class="analysis-ring ring3"></div>
-                    <div class="analysis-icon">🫁</div>
+            
+            <div class="card" style="border-top-color: #ddd;">
+                <h3 style="margin-top: 0; margin-bottom: 15px; text-align: center;">How to Cough Correctly</h3>
+                <div class="instructions">
+                    <div class="instr-item"><div class="instr-num">1</div>Sit upright, mic nearby</div>
+                    <div class="instr-item"><div class="instr-num">2</div>Take a deep breath in</div>
+                    <div class="instr-item"><div class="instr-num">3</div>Cough forcefully 3 times</div>
+                    <div class="instr-item"><div class="instr-num">4</div>Wait for analysis</div>
                 </div>
-                <div class="analysis-log" id="analysisLog">
-                    <div class="log-line"><span class="info">[INIT]</span> Loading audio feature buffer...</div>
+            </div>
+            <button class="det-btn det-btn-primary" id="nextBtn1" disabled onclick="goTo(2)">Continue to Health Profile →</button>
+        </div>
+
+        <div class="det-panel" id="panel2">
+            <div class="card" style="border-top-color: var(--primary);">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">Health Risk Profile</h3>
+                <div class="det-card-sub">// COMBINED WITH ACOUSTIC SCORE FOR FINAL TRIAGE</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="f_age" min="10" max="100" placeholder="e.g. 45">
+                    </div>
+                    <div class="form-group">
+                        <label>Biological Sex</label>
+                        <select id="f_sex">
+                            <option value="">Select...</option>
+                            <option>Male</option><option>Female</option><option>Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Smoking History</label>
+                        <select id="f_smoke">
+                            <option value="">Select...</option>
+                            <option value="0">Never smoked</option>
+                            <option value="1">Former smoker</option>
+                            <option value="2">Current smoker</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Years of Smoke/Dust Exposure</label>
+                        <input type="number" id="f_years" min="0" max="60" placeholder="e.g. 10">
+                    </div>
+                    <div class="form-group">
+                        <label>Persistent Cough Duration</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="cough" id="c0" value="0"><label for="c0">None</label></div>
+                            <div class="radio-opt"><input type="radio" name="cough" id="c1" value="1"><label for="c1">1–3 wks</label></div>
+                            <div class="radio-opt"><input type="radio" name="cough" id="c2" value="2"><label for="c2">3+ wks</label></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Shortness of Breath</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="sob" id="sob0" value="0"><label for="sob0">No</label></div>
+                            <div class="radio-opt"><input type="radio" name="sob" id="sob1" value="1"><label for="sob1">Mild</label></div>
+                            <div class="radio-opt"><input type="radio" name="sob" id="sob2" value="2"><label for="sob2">Severe</label></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Chest Pain or Tightness</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="chest" id="ch0" value="0"><label for="ch0">No</label></div>
+                            <div class="radio-opt"><input type="radio" name="chest" id="ch1" value="1"><label for="ch1">Yes</label></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Indoor Cookfire / Smoke Exposure</label>
+                        <div class="radio-group">
+                            <div class="radio-opt"><input type="radio" name="cook" id="ck0" value="0"><label for="ck0">No</label></div>
+                            <div class="radio-opt"><input type="radio" name="cook" id="ck1" value="1"><label for="ck1">Yes</label></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="det-btn det-btn-primary" onclick="runAnalysis()">Run KNN Acoustic + Risk Analysis →</button>
+            </div>
+        </div>
+
+        <div class="det-panel" id="panel3">
+            <div class="card" style="border-top-color: var(--accent); text-align:center;">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">KNN Classifier Running</h3>
+                <div class="det-card-sub">// COMPARING YOUR COUGH AGAINST REFERENCE LIBRARY</div>
+                <div class="analysis-center">
+                    <div class="analysis-visual">
+                        <div class="analysis-ring ring1"></div>
+                        <div class="analysis-ring ring2"></div>
+                        <div class="analysis-ring ring3"></div>
+                        <div class="analysis-icon">🫁</div>
+                    </div>
+                    <div class="analysis-log" id="analysisLog">
+                        <div class="log-line"><span class="info">[INIT]</span> Loading audio feature buffer...</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ── PANEL 4: RESULTS ── -->
-    <div class="det-panel" id="panel4">
-        <div class="det-card" style="text-align:center;">
-            <div class="det-card-title">Acoustic Classification Complete</div>
-            <div class="det-card-sub">// KNN TRIAGE SCORE — RESEARCH-GROUNDED</div>
+        <div class="det-panel" id="panel4">
+            <div class="card" style="border-top-color: var(--secondary); text-align:center; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">Acoustic Classification Complete</h3>
+                <div class="det-card-sub">// KNN TRIAGE SCORE — RESEARCH-GROUNDED</div>
 
-            <div class="risk-meter">
-                <svg viewBox="0 0 200 110">
-                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="14" stroke-linecap="round"/>
-                    <path d="M 20 100 A 80 80 0 0 1 80 27"  fill="none" stroke="#27ae60" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
-                    <path d="M 80 27  A 80 80 0 0 1 140 27" fill="none" stroke="#f39c12" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
-                    <path d="M 140 27 A 80 80 0 0 1 180 100" fill="none" stroke="#e74c3c" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
-                    <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="white" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)" style="transition:transform 1.5s cubic-bezier(0.34,1.56,0.64,1)"/>
-                    <circle cx="100" cy="100" r="5" fill="white"/>
-                </svg>
-                <div class="risk-label-center">
-                    <div class="risk-value" id="scoreVal">--</div>
-                    <div class="risk-word"  id="riskWord" style="color:var(--secondary)">CALCULATING</div>
+                <div class="risk-meter">
+                    <svg viewBox="0 0 200 110">
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f0f0f0" stroke-width="14" stroke-linecap="round"/>
+                        <path d="M 20 100 A 80 80 0 0 1 80 27"  fill="none" stroke="#27ae60" stroke-width="14" stroke-linecap="round" opacity="0.5"/>
+                        <path d="M 80 27  A 80 80 0 0 1 140 27" fill="none" stroke="#f39c12" stroke-width="14" stroke-linecap="round" opacity="0.5"/>
+                        <path d="M 140 27 A 80 80 0 0 1 180 100" fill="none" stroke="#e74c3c" stroke-width="14" stroke-linecap="round" opacity="0.5"/>
+                        <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="#333" stroke-width="3" stroke-linecap="round" transform="rotate(0,100,100)" style="transition:transform 1.5s cubic-bezier(0.34,1.56,0.64,1)"/>
+                        <circle cx="100" cy="100" r="6" fill="#333"/>
+                    </svg>
+                    <div class="risk-label-center">
+                        <div class="risk-value" id="scoreVal">--</div>
+                        <div class="risk-word"  id="riskWord" style="color:var(--secondary)">CALCULATING</div>
+                    </div>
                 </div>
+
+                <div class="features-grid" id="featuresGrid"></div>
             </div>
 
-            <div class="features-grid" id="featuresGrid"></div>
-        </div>
-
-        <!-- KNN NEAREST NEIGHBORS -->
-        <div class="det-card">
-            <div class="det-card-title">K-Nearest Neighbor Matches</div>
-            <div class="det-card-sub">// YOUR COUGH VS COUGHVID/COSWARA REFERENCE PROFILES</div>
-            <div class="citation-box">
-                <strong>Research basis:</strong> Reference feature ranges derived from published studies using the COUGHVID dataset (25,000+ recordings, Orlandic et al. 2021) and Coswara dataset. Features: spectral centroid (healthy &gt; symptomatic), ZCR (restrictive disease = high, obstructive = low), RMS energy, and spectral bandwidth (1300–3200 Hz for coughs).
+            <div class="card" style="border-top-color: var(--primary); margin-bottom: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">K-Nearest Neighbor Matches</h3>
+                <div class="det-card-sub">// YOUR COUGH VS COUGHVID/COSWARA REFERENCE PROFILES</div>
+                <div class="citation-box">
+                    <strong>Research basis:</strong> Reference feature ranges derived from published studies using the COUGHVID dataset (25,000+ recordings, Orlandic et al. 2021) and Coswara dataset. Features: spectral centroid (healthy &gt; symptomatic), ZCR (restrictive disease = high, obstructive = low), RMS energy, and spectral bandwidth (1300–3200 Hz for coughs).
+                </div>
+                <div class="knn-matches" id="knnMatches"></div>
             </div>
-            <div class="knn-matches" id="knnMatches"></div>
+
+            <div class="card" style="border-top-color: #ddd; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">Extracted Audio Features</h3>
+                <div class="det-card-sub">// RAW MEASUREMENTS FROM YOUR COUGH RECORDING</div>
+                <div id="audioFeatureDetails"></div>
+            </div>
+
+            <div id="summaryBlock"></div>
+
+            <div class="disclaimer">
+                ⚠️ <strong>Important:</strong> This is a research prototype pre-screening tool, not a medical diagnosis. The KNN classifier uses published acoustic feature ranges as a reference — it cannot replace clinical evaluation. Always consult a qualified healthcare provider.
+            </div>
+
+            <button class="det-btn det-btn-primary" onclick="goToTreatment()">▶ View My Treatment Plan →</button>
+            <button class="det-btn" style="background:var(--primary); color:white;" onclick="downloadSummary()">⬇ Download Doctor Summary</button>
+            <button class="det-btn det-btn-outline" onclick="restart()">↺ New Analysis</button>
         </div>
 
-        <div class="det-card">
-            <div class="det-card-title">Extracted Audio Features</div>
-            <div class="det-card-sub">// RAW MEASUREMENTS FROM YOUR COUGH RECORDING</div>
-            <div id="audioFeatureDetails"></div>
-        </div>
-
-        <div id="summaryBlock"></div>
-
-        <div class="disclaimer">
-            ⚠️ <strong>Important:</strong> This is a research prototype pre-screening tool, not a medical diagnosis. The KNN classifier uses published acoustic feature ranges as a reference — it cannot replace clinical evaluation. Always consult a qualified healthcare provider.
-        </div>
-
-        <button class="det-btn det-btn-primary" onclick="goToTreatment()">▶ View My Treatment Plan →</button>
-        <button class="det-btn det-btn-primary" style="margin-top:8px; background:#1a4a7c;" onclick="downloadSummary()">⬇ Download Doctor Summary</button>
-        <button class="det-btn det-btn-outline" onclick="restart()">↺ New Analysis</button>
     </div>
-
-</div>
 </div>
 
 <footer>
@@ -353,6 +338,10 @@
 </footer>
 
 <script>
+// --- JAVASCRIPT REMAINS UNCHANGED (LOGIC & API) ---
+// Note: Only minor color hex updates were made within innerHTML strings to ensure 
+// text remains readable against the new light theme backgrounds.
+
 const REFERENCE_LIBRARY = [
     { label:"Healthy",              color:"#27ae60", sc:3200, bw:2400, zcr:0.28, rms:0.55, ro:5800, ev:0.12 },
     { label:"Healthy",              color:"#27ae60", sc:3500, bw:2600, zcr:0.30, rms:0.50, ro:6100, ev:0.10 },
@@ -397,7 +386,7 @@ const waveCtx    = waveCanvas.getContext('2d');
 
 function drawIdleWave() {
     waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
-    waveCtx.strokeStyle = 'rgba(39,174,96,0.2)';
+    waveCtx.strokeStyle = 'rgba(39,174,96,0.4)';
     waveCtx.lineWidth = 2;
     waveCtx.beginPath();
     const mid = waveCanvas.height / 2;
@@ -414,8 +403,6 @@ function drawLiveWave(data) {
     waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
     waveCtx.lineWidth = 2;
     waveCtx.strokeStyle = '#27ae60';
-    waveCtx.shadowBlur = 8;
-    waveCtx.shadowColor = '#27ae60';
     waveCtx.beginPath();
     const sw = waveCanvas.width / data.length;
     for (let i = 0; i < data.length; i++) {
@@ -423,7 +410,6 @@ function drawLiveWave(data) {
         i === 0 ? waveCtx.moveTo(i * sw, y) : waveCtx.lineTo(i * sw, y);
     }
     waveCtx.stroke();
-    waveCtx.shadowBlur = 0;
 }
 
 async function toggleRecord() {
@@ -442,7 +428,7 @@ async function toggleRecord() {
         isRecording = true; recordSeconds = 0;
         document.getElementById('recordBtn').className = 'record-btn recording';
         document.getElementById('recordBtn').textContent = '⏹';
-        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--danger);">● RECORDING — Cough 3 times now!</span>';
+        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--danger); font-weight:bold;">● RECORDING — Cough 3 times now!</span>';
         document.getElementById('timer').style.display = 'block';
         cancelAnimationFrame(waveAnimId);
 
@@ -477,13 +463,13 @@ function stopRecording() {
     mediaRecorder.stream.getTracks().forEach(t => t.stop());
     document.getElementById('recordBtn').className = 'record-btn analyzing';
     document.getElementById('recordBtn').textContent = '⚙️';
-    document.getElementById('recordStatus').innerHTML = '<span style="color:#1a6cff;">⚙ Extracting features...</span>';
+    document.getElementById('recordStatus').innerHTML = '<span style="color:var(--primary); font-weight:bold;">⚙ Extracting features...</span>';
     document.getElementById('timer').style.display = 'none';
     setTimeout(() => {
         extractFeatures();
         document.getElementById('recordBtn').className = 'record-btn';
         document.getElementById('recordBtn').textContent = '✅';
-        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--secondary);">✓ Recording captured! Continue below.</span>';
+        document.getElementById('recordStatus').innerHTML = '<span style="color:var(--secondary); font-weight:bold;">✓ Recording captured! Continue below.</span>';
         document.getElementById('nextBtn1').disabled = false;
         drawIdleWave();
     }, 1200);
@@ -712,12 +698,12 @@ function showResults() {
 
     const maxSC = 4300, maxBW = 3200, maxRO = 7800;
     const features = [
-        { name:'Spectral Centroid', val: audioFeatures.sc+'Hz',  pct: Math.min(audioFeatures.sc/maxSC*100,100),        color:'#1a6cff' },
-        { name:'Spectral Bandwidth',val: audioFeatures.bw+'Hz',  pct: Math.min(audioFeatures.bw/maxBW*100,100),        color:'#27ae60' },
-        { name:'Spectral Rolloff',  val: audioFeatures.ro+'Hz',  pct: Math.min(audioFeatures.ro/maxRO*100,100),        color:'#f39c12' },
-        { name:'ZCR',               val: audioFeatures.zcr.toFixed(3), pct: Math.min(audioFeatures.zcr*250,100),       color:'#c96eff' },
-        { name:'RMS Energy',        val: audioFeatures.rms.toFixed(3), pct: Math.min(audioFeatures.rms*100,100),       color:'#27ae60' },
-        { name:'Cough Events',      val: audioFeatures.coughCount,     pct: Math.min(audioFeatures.coughCount*25,100), color:'#e74c3c' },
+        { name:'Spectral Centroid', val: audioFeatures.sc+'Hz',  pct: Math.min(audioFeatures.sc/maxSC*100,100),        color:'var(--primary)' },
+        { name:'Spectral Bandwidth',val: audioFeatures.bw+'Hz',  pct: Math.min(audioFeatures.bw/maxBW*100,100),        color:'var(--secondary)' },
+        { name:'Spectral Rolloff',  val: audioFeatures.ro+'Hz',  pct: Math.min(audioFeatures.ro/maxRO*100,100),        color:'var(--accent)' },
+        { name:'ZCR',               val: audioFeatures.zcr.toFixed(3), pct: Math.min(audioFeatures.zcr*250,100),       color:'#9b59b6' },
+        { name:'RMS Energy',        val: audioFeatures.rms.toFixed(3), pct: Math.min(audioFeatures.rms*100,100),       color:'var(--secondary)' },
+        { name:'Cough Events',      val: audioFeatures.coughCount,     pct: Math.min(audioFeatures.coughCount*25,100), color:'var(--danger)' },
     ];
 
     document.getElementById('featuresGrid').innerHTML = features.map(f=>`
@@ -732,7 +718,7 @@ function showResults() {
         <div class="knn-title">Top ${knn.kNearest.length} closest reference profiles (K=5) — KNN classifier result: <span style="color:${knn.kNearest[0].color}">${knn.topLabel}</span> (${knn.confidence}% confidence)</div>
         ${knn.kNearest.map((n,i) => `
             <div class="knn-item">
-                <span style="color:#555;font-family:monospace;font-size:0.72rem;">#${i+1}</span>
+                <span style="color:#888;font-family:monospace;font-size:0.8rem;">#${i+1}</span>
                 <span class="knn-label" style="color:${n.color}">${n.label}</span>
                 <div class="knn-bar-wrap">
                     <div class="knn-bar" style="width:${Math.round((1-n.distance/maxDist)*100)}%;background:${n.color};"></div>
@@ -743,11 +729,11 @@ function showResults() {
     document.getElementById('audioFeatureDetails').innerHTML = `
         <div class="summary-section" style="margin-bottom:0;">
             <div class="summary-title">Measured vs Reference</div>
-            <div class="summary-row"><span class="key">Spectral Centroid</span><span class="val">${audioFeatures.sc} Hz <span style="color:#444;font-size:0.76rem;">healthy: ~3000–3800 Hz</span></span></div>
-            <div class="summary-row"><span class="key">Spectral Bandwidth</span><span class="val">${audioFeatures.bw} Hz <span style="color:#444;font-size:0.76rem;">reference: 1300–3200 Hz</span></span></div>
-            <div class="summary-row"><span class="key">Spectral Rolloff</span><span class="val">${audioFeatures.ro} Hz <span style="color:#444;font-size:0.76rem;">reference: up to 7800 Hz</span></span></div>
-            <div class="summary-row"><span class="key">Zero Crossing Rate</span><span class="val">${audioFeatures.zcr.toFixed(4)} <span style="color:#444;font-size:0.76rem;">obstructive=low, restrictive=high</span></span></div>
-            <div class="summary-row"><span class="key">RMS Energy</span><span class="val">${audioFeatures.rms.toFixed(4)} <span style="color:#444;font-size:0.76rem;">obstructive=high, restrictive=low</span></span></div>
+            <div class="summary-row"><span class="key">Spectral Centroid</span><span class="val">${audioFeatures.sc} Hz <span style="color:#888;font-size:0.8rem;">healthy: ~3000–3800 Hz</span></span></div>
+            <div class="summary-row"><span class="key">Spectral Bandwidth</span><span class="val">${audioFeatures.bw} Hz <span style="color:#888;font-size:0.8rem;">reference: 1300–3200 Hz</span></span></div>
+            <div class="summary-row"><span class="key">Spectral Rolloff</span><span class="val">${audioFeatures.ro} Hz <span style="color:#888;font-size:0.8rem;">reference: up to 7800 Hz</span></span></div>
+            <div class="summary-row"><span class="key">Zero Crossing Rate</span><span class="val">${audioFeatures.zcr.toFixed(4)} <span style="color:#888;font-size:0.8rem;">obstructive=low, restrictive=high</span></span></div>
+            <div class="summary-row"><span class="key">RMS Energy</span><span class="val">${audioFeatures.rms.toFixed(4)} <span style="color:#888;font-size:0.8rem;">obstructive=high, restrictive=low</span></span></div>
             <div class="summary-row"><span class="key">Cough Events</span><span class="val">${audioFeatures.coughCount} detected</span></div>
             <div class="summary-row"><span class="key">Recording Duration</span><span class="val">${audioFeatures.duration}s</span></div>
             <div class="summary-row"><span class="key">KNN Classification</span><span class="val" style="color:${knn.kNearest[0].color};font-weight:700;">${knn.topLabel} (${knn.confidence}% confidence)</span></div>
@@ -774,8 +760,8 @@ function showResults() {
     ];
 
     document.getElementById('summaryBlock').innerHTML = `
-        <div class="det-card">
-            <div class="det-card-title">Doctor Conversation Summary</div>
+        <div class="card" style="border-top-color: #333; margin-top: 20px;">
+            <h3 style="margin-top: 0; margin-bottom: 5px;">Doctor Conversation Summary</h3>
             <div class="det-card-sub">// BRING THIS TO YOUR APPOINTMENT</div>
             <div class="summary-section">
                 <div class="summary-title">Patient Profile</div>
@@ -812,7 +798,7 @@ function restart() {
     recordingChunks=[]; allSamples=[]; audioFeatures={}; lastKNN=null;
     document.getElementById('recordBtn').className = 'record-btn';
     document.getElementById('recordBtn').textContent = '🎙️';
-    document.getElementById('recordStatus').innerHTML = 'Press the microphone and perform <strong style="color:white;">3 forced coughs</strong>.<br><span style="font-size:0.8rem;">Recording auto-stops after 8 seconds.</span>';
+    document.getElementById('recordStatus').innerHTML = 'Press the microphone and perform <strong style="color:var(--primary);">3 forced coughs</strong>.<br><span style="font-size:0.85rem; color:#777;">Recording auto-stops after 8 seconds.</span>';
     document.getElementById('nextBtn1').disabled = true;
     document.getElementById('timer').style.display = 'none';
     cancelAnimationFrame(waveAnimId); drawIdleWave();
@@ -878,7 +864,5 @@ References: Orlandic et al. 2021 (COUGHVID, Nature Scientific Data);
     a.click();
 }
 </script>
-</body>
-</html>
 </body>
 </html>
