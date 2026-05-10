@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awareness Simulator — Global Breath-Link</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Global Breath-Link Initiative</h1>
+        <p>Democratizing Lung Health: A Triage-to-Treatment Ecosystem</p>
+    </header>
+
+    <div class="top-nav">
+        <a href="index.html">🏠 Home</a>
+        <a href="awareness.html" class="active">🫁 Awareness Simulator</a>
+        <a href="detection.html">🔬 AI Acoustic Biopsy</a>
+        <a href="treatment.html">💊 Treatment Plan</a>
+    </div>
+
+    <div class="container" id="mainContent">
+        <div style="text-align:center; margin-bottom:40px; padding-top:10px;">
+            <div style="display:inline-block; background:#e8f4fd; border:1px solid var(--primary); border-radius:20px; padding:6px 18px; font-size:0.8rem; font-weight: bold; color:var(--primary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px;">ENVIRONMENTAL RISK ANALYSIS</div>
+            <h2 style="font-size:2.2rem; margin-top:0; margin-bottom:15px; color:var(--primary);">1. Awareness Simulator</h2>
+            <p style="color:#555; max-width:600px; margin:auto; line-height:1.6; font-size:1.05rem;">Select an environmental or genetic risk factor below to launch the interactive clinical pathology simulation and take your certification exam.</p>
+        </div>
+
+        <div class="card" style="border-top-color: var(--secondary); text-align: center; max-width: 700px; margin: 0 auto;">
+            <h3 style="margin-top:0; font-size: 1.2rem;">Select a Clinical Topic:</h3>
+            <div class="tag-cloud" style="justify-content: center; padding: 15px 0;">
+                <span class="tag" onclick="openSim('radon')">☢️ Radon Gas</span>
+                <span class="tag" onclick="openSim('cookfire')">🔥 Cookfire Smoke</span>
+                <span class="tag" onclick="openSim('genetics')">🧬 Genetic Factors</span>
+                <span class="tag" onclick="openSim('radiation')">⚡ Ionizing Radiation</span>
+                <span class="tag" onclick="openSim('alcohol')">🍷 Alcohol Impact</span>
+                <span class="tag" onclick="openSim('air')">🏭 Urban Air Pollution</span>
+                <span class="tag" onclick="openSim('diet')">🥗 Diet & Lifestyle</span>
+                <span class="tag" onclick="openSim('carcinogens')">🏗️ Industrial Carcinogens</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="simulator">
+        <button onclick="goBack()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px;">⬅ Exit Simulator</button>
+
+        <h2 id="simTitle" style="color:var(--primary); margin-top:10px;">PATHOLOGY ANALYSIS</h2>
+
+        <div class="viewer">
+            <canvas id="lungCanvas" width="300" height="300"></canvas>
+        </div>
+
+        <div class="healthbar"><div id="healthFill" class="healthfill"></div></div>
+
+        <div class="controls">
+            <button id="step-healthy" onclick="setExposure('healthy')">Healthy State</button>
+            <button id="step-low" onclick="setExposure('low')">Low Exposure</button>
+            <button id="step-medium" onclick="setExposure('medium')">Medium Exposure</button>
+            <button id="step-high" onclick="setExposure('high')">High Exposure</button>
+        </div>
+
+        <div class="edu-panel">
+            <h3 id="eduHeading" style="color:var(--primary); margin-top:0; border-bottom:2px solid #f0f0f0; padding-bottom:10px; font-size:1.4rem;">Diagnostic Overview</h3>
+            <p id="infoText" style="color:#555; font-size:1.05rem; font-weight:500; line-height:1.6;"></p>
+
+            <div id="detailedSpecs" style="font-size:0.95rem; margin-top:20px;">
+                <div style="background:#fdfdfd; padding:18px; border-radius:8px; margin-bottom:15px; border:1px solid #eee; border-left:4px solid var(--accent); box-shadow:0 2px 5px rgba(0,0,0,0.02);">
+                    <h4 style="color:var(--accent); margin:0 0 8px 0; text-transform:uppercase; font-size:0.85rem; letter-spacing:0.05em;">🔬 Cellular Pathogenesis</h4>
+                    <p id="specMech" style="color:#444; margin:0; line-height:1.6;"></p>
+                </div>
+                <div style="background:#fdfdfd; padding:18px; border-radius:8px; border:1px solid #eee; border-left:4px solid var(--danger); box-shadow:0 2px 5px rgba(0,0,0,0.02);">
+                    <h4 style="color:var(--danger); margin:0 0 8px 0; text-transform:uppercase; font-size:0.85rem; letter-spacing:0.05em;">📉 Long-term Prognosis</h4>
+                    <p id="specProg" style="color:#444; margin:0; line-height:1.6;"></p>
+                </div>
+            </div>
+        </div>
+
+        <p id="lockMessage" class="unlock-msg">🔒 Explore Healthy → Low → Medium → High to unlock the Exam.</p>
+        <button id="quizButton" class="quizBtn" onclick="startQuiz()">Take Certification Exam</button>
+    </div>
+
+    <div id="quizModal">
+        <div class="quiz-content">
+            <h2 id="quizHeader">Certification Exam</h2>
+            <div id="quizBody"></div>
+            <div id="quizResults"></div>
+
+            <div id="nameSection">
+                <h3>🎓 Enter Your Name for the Certificate</h3>
+                <p>Your name will appear exactly as you type it.</p>
+                <div class="name-inputs">
+                    <input type="text" id="firstNameInput" placeholder="First Name" maxlength="30">
+                    <input type="text" id="lastNameInput" placeholder="Last Name" maxlength="30">
+                </div>
+                <div id="nameError">Please enter both your first and last name.</div>
+            </div>
+
+            <button id="submitQuizBtn" onclick="submitQuiz()" style="background:var(--secondary); color:white; border:none; padding:14px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; font-size:1rem; transition:0.2s;" onmouseover="this.style.boxShadow='0 4px 15px rgba(39,174,96,0.3)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='none';">Submit Answers</button>
+            <button id="downloadCertBtn" onclick="generateCertificate()" class="cert-btn">⬇ Download My Certificate</button>
+            <button onclick="closeQuiz()" class="close-quiz">Close [X]</button>
+        </div>
+    </div>
+
+    <canvas id="certCanvas" width="900" height="650" style="display:none;"></canvas>
+
+    <footer>
+        <p>&copy; 2026 Global Breath-Link Initiative | Proposed by Ashrita Nagalla & Akhil Nagalla</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
