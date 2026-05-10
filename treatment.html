@@ -5,185 +5,819 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Treatment Plan — Global Breath-Link</title>
 <link rel="stylesheet" href="style.css">
-
 <style>
-body {
-    background:#0f1c2e;
-    color:white;
+body { background:#0f1c2e; color:white; margin:0; font-family:'Segoe UI',Tahoma,sans-serif; }
+
+/* ── NAV BAR (matches detection.html) ── */
+.top-nav {
+    background:#132238;
+    border-bottom:1px solid rgba(39,174,96,0.15);
+    padding:12px 20px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.top-nav a {
+    color:#888;
+    text-decoration:none;
+    padding:6px 14px;
+    border-radius:6px;
+    font-size:0.85rem;
+    transition:color 0.2s;
+}
+.top-nav a:hover { color:#fff; }
+.top-nav a.active {
+    color:var(--secondary);
+    background:rgba(39,174,96,0.1);
+    border:1px solid rgba(39,174,96,0.3);
 }
 
-.treat-wrap {
-    max-width:900px;
-    margin:auto;
-    padding:40px 20px;
-}
+/* ── LAYOUT ── */
+.treat-wrap { max-width:900px; margin:auto; padding:40px 20px; }
 
+/* ── CARDS ── */
 .treat-card {
     background:#060e1a;
     border:1px solid rgba(39,174,96,0.2);
     border-radius:16px;
     padding:25px;
     margin-bottom:20px;
+    position:relative;
+    overflow:hidden;
 }
-
+.treat-card::before {
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:2px;
+    background:linear-gradient(90deg,transparent,var(--secondary),transparent);
+}
 .treat-title {
-    font-weight:bold;
-    margin-bottom:10px;
-    color:#27ae60;
+    font-size:0.68rem;
+    color:var(--secondary);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:monospace;
+}
+.treat-title::after {
+    content:'';
+    flex:1;
+    height:1px;
+    background:rgba(39,174,96,0.15);
 }
 
-.risk-box {
-    text-align:center;
-    margin-bottom:30px;
-}
-
+/* ── RISK SCORE ── */
+.risk-box { text-align:center; margin-bottom:30px; padding:30px; }
 .risk-score {
-    font-size:3rem;
-    font-weight:bold;
+    font-size:4rem;
+    font-weight:900;
+    line-height:1;
+    margin:10px 0;
 }
-
-.btn {
-    background:#27ae60;
-    color:white;
-    border:none;
-    padding:12px;
-    border-radius:8px;
-    cursor:pointer;
-    width:100%;
-    margin-top:10px;
-}
-
-input {
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:none;
+.risk-badge {
+    display:inline-block;
+    padding:5px 18px;
+    border-radius:20px;
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    font-family:monospace;
     margin-top:8px;
 }
+
+/* ── STEPS LIST ── */
+.steps-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.steps-list li {
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:12px;
+    background:rgba(39,174,96,0.05);
+    border:1px solid rgba(39,174,96,0.12);
+    border-radius:10px;
+    font-size:0.9rem;
+    color:#ccc;
+    line-height:1.5;
+}
+.step-num {
+    width:24px; height:24px;
+    border-radius:50%;
+    background:rgba(39,174,96,0.12);
+    border:1px solid var(--secondary);
+    color:var(--secondary);
+    font-size:0.7rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    margin-top:1px;
+    font-family:monospace;
+}
+
+/* ── MAPS ── */
+.map-search-row {
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+}
+.map-input {
+    flex:1;
+    min-width:200px;
+    background:#060e1a;
+    border:1px solid rgba(39,174,96,0.25);
+    border-radius:10px;
+    color:white;
+    padding:12px 14px;
+    font-family:'Segoe UI',Tahoma,sans-serif;
+    font-size:0.9rem;
+    outline:none;
+    transition:border-color 0.2s;
+}
+.map-input:focus { border-color:var(--secondary); }
+.map-input::placeholder { color:#444; }
+
+.map-filter-row {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+}
+.filter-btn {
+    padding:6px 14px;
+    border-radius:20px;
+    border:1px solid rgba(39,174,96,0.25);
+    background:transparent;
+    color:#777;
+    font-size:0.78rem;
+    cursor:pointer;
+    font-family:'Segoe UI',Tahoma,sans-serif;
+    transition:all 0.2s;
+}
+.filter-btn:hover { border-color:var(--secondary); color:var(--secondary); }
+.filter-btn.active {
+    background:rgba(39,174,96,0.12);
+    border-color:var(--secondary);
+    color:var(--secondary);
+}
+
+#map {
+    width:100%;
+    height:340px;
+    border-radius:12px;
+    border:1px solid rgba(39,174,96,0.2);
+    background:#0a1628;
+    margin-bottom:14px;
+    overflow:hidden;
+    position:relative;
+}
+.map-placeholder {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    gap:12px;
+    color:#555;
+}
+.map-placeholder .map-icon { font-size:2.5rem; }
+.map-placeholder p { font-size:0.85rem; font-family:monospace; letter-spacing:0.05em; }
+
+.map-results-list { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.map-result-item {
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    padding:12px 14px;
+    background:#060e1a;
+    border:1px solid rgba(39,174,96,0.1);
+    border-radius:10px;
+    font-size:0.85rem;
+    transition:border-color 0.2s;
+    cursor:pointer;
+}
+.map-result-item:hover { border-color:rgba(39,174,96,0.4); }
+.result-icon {
+    font-size:1.4rem;
+    flex-shrink:0;
+    margin-top:2px;
+}
+.result-name { color:#eee; font-weight:600; margin-bottom:2px; }
+.result-address { color:#555; font-size:0.78rem; font-family:monospace; }
+.result-distance { color:var(--secondary); font-size:0.75rem; font-family:monospace; margin-top:4px; }
+.result-badge {
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:10px;
+    font-size:0.65rem;
+    letter-spacing:0.07em;
+    text-transform:uppercase;
+    margin-top:4px;
+}
+
+/* ── TREATMENT GRID ── */
+.treatment-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:600px){ .treatment-grid{ grid-template-columns:1fr; } }
+.tx-item {
+    background:rgba(39,174,96,0.04);
+    border:1px solid rgba(39,174,96,0.12);
+    border-radius:10px;
+    padding:14px;
+}
+.tx-item-title { color:var(--secondary); font-size:0.8rem; font-weight:700; margin-bottom:6px; font-family:monospace; letter-spacing:0.05em; }
+.tx-item-body { color:#999; font-size:0.83rem; line-height:1.6; }
+
+/* ── LIFESTYLE ── */
+.lifestyle-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+.lifestyle-list li {
+    display:flex; gap:10px; align-items:flex-start;
+    color:#bbb; font-size:0.88rem; line-height:1.5;
+}
+.ls-icon { font-size:1rem; flex-shrink:0; margin-top:1px; }
+
+/* ── BUTTONS ── */
+.btn {
+    display:block;
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:none;
+    font-size:0.9rem;
+    font-weight:bold;
+    cursor:pointer;
+    font-family:'Segoe UI',Tahoma,sans-serif;
+    transition:all 0.2s;
+    margin-top:10px;
+}
+.btn-primary { background:var(--secondary); color:white; }
+.btn-primary:hover { background:#22c774; box-shadow:0 6px 20px rgba(39,174,96,0.3); }
+.btn-outline { background:transparent; color:var(--secondary); border:1px solid var(--secondary); }
+.btn-outline:hover { background:rgba(39,174,96,0.08); }
+.btn-map { background:#1a6cff; color:white; }
+.btn-map:hover { background:#2979ff; box-shadow:0 6px 20px rgba(26,108,255,0.3); }
+
+/* ── MAP STATUS ── */
+.map-status {
+    font-size:0.75rem;
+    color:#555;
+    font-family:monospace;
+    text-align:center;
+    padding:8px;
+}
+.map-status.loading { color:#1a6cff; }
+.map-status.success { color:var(--secondary); }
+.map-status.error   { color:var(--danger); }
+
+/* ── DISCLAIMER ── */
+.disclaimer {
+    background:rgba(243,156,18,0.08);
+    border:1px solid rgba(243,156,18,0.25);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:0.82rem;
+    color:var(--accent);
+    margin-bottom:16px;
+    line-height:1.6;
+}
+
+/* ── SUMMARY TABLE ── */
+.summary-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:8px 0;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    font-size:0.86rem;
+    gap:12px;
+}
+.summary-row:last-child { border-bottom:none; }
+.summary-row .key { color:#555; font-family:monospace; font-size:0.78rem; flex-shrink:0; }
+.summary-row .val { color:#ccc; font-weight:500; text-align:right; }
 </style>
 </head>
-
 <body>
 
+<!-- ── HEADER ── -->
 <header>
-    <h1>3. Personalized Treatment Pathway</h1>
-    <p>From AI Risk → Real Clinical Action</p>
+    <h1>Global Breath-Link Initiative</h1>
+    <p>Democratizing Lung Health: A Triage-to-Treatment Ecosystem</p>
 </header>
 
+<!-- ── NAV BAR ── -->
+<div class="top-nav">
+    <a href="index.html">🏠 Home</a>
+    <a href="index.html">🫁 Awareness Simulator</a>
+    <a href="detection.html">🔬 AI Acoustic Biopsy</a>
+    <a href="treatment.html" class="active">💊 Treatment Plan</a>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
 <div class="treat-wrap">
 
-    <!-- RISK SCORE -->
-    <div class="risk-box">
-        <div>Your Risk Score</div>
-        <div class="risk-score" id="score">--</div>
-        <div id="riskText">Loading...</div>
+    <!-- PAGE HEADER -->
+    <div style="text-align:center; margin-bottom:40px; padding-top:10px;">
+        <div style="display:inline-block; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3); border-radius:20px; padding:5px 16px; font-size:0.75rem; color:var(--secondary); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px; font-family:monospace;">PERSONALIZED CARE PATHWAY</div>
+        <h2 style="font-size:2rem; margin-bottom:10px; color:white;">3. Your Treatment Plan</h2>
+        <p style="color:#666; max-width:560px; margin:auto; line-height:1.7; font-size:0.95rem;">Turning your AI risk score into real clinical next steps — from tests to care providers near you.</p>
     </div>
 
-    <!-- CLINICAL STEPS -->
+    <!-- RISK SCORE CARD -->
+    <div class="treat-card risk-box">
+        <div style="font-size:0.7rem; color:#555; letter-spacing:0.12em; text-transform:uppercase; font-family:monospace; margin-bottom:6px;">Your Triage Score</div>
+        <div class="risk-score" id="score" style="color:var(--secondary);">--</div>
+        <div><span class="risk-badge" id="riskBadge" style="background:rgba(39,174,96,0.12); color:var(--secondary); border:1px solid rgba(39,174,96,0.3);">Loading...</span></div>
+        <p id="riskDesc" style="color:#888; font-size:0.88rem; margin-top:14px; max-width:500px; margin-left:auto; margin-right:auto; line-height:1.6;"></p>
+        <div id="noScoreWarning" style="display:none; margin-top:14px; background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.3); border-radius:10px; padding:12px 16px; font-size:0.82rem; color:var(--accent);">
+            ⚠️ No cough analysis found. <a href="detection.html" style="color:#1a6cff;">Run the AI Acoustic Biopsy first</a> to get your personalised score.
+        </div>
+    </div>
+
+    <!-- CLINICAL NEXT STEPS -->
     <div class="treat-card">
-        <div class="treat-title">Next Clinical Steps</div>
-        <ul id="stepsList"></ul>
+        <div class="treat-title">Recommended Clinical Steps</div>
+        <ul class="steps-list" id="stepsList"></ul>
     </div>
 
-    <!-- FIND CARE -->
+    <!-- FIND CARE — GOOGLE MAPS -->
     <div class="treat-card">
-        <div class="treat-title">Find Care Near You</div>
-        <input type="text" id="locationInput" placeholder="Enter your country or city">
-        <button class="btn" onclick="findCare()">Find Providers</button>
-        <div id="careResults" style="margin-top:15px;"></div>
+        <div class="treat-title">Find Healthcare Near You</div>
+
+        <div class="map-search-row">
+            <input class="map-input" type="text" id="locationInput" placeholder="Enter your city, postcode, or address…" onkeydown="if(event.key==='Enter') findCare()">
+            <button class="btn btn-map" style="width:auto; padding:12px 20px; margin:0;" onclick="findCare()">📍 Search</button>
+            <button class="btn btn-outline" style="width:auto; padding:12px 20px; margin:0;" onclick="useMyLocation()">🎯 My Location</button>
+        </div>
+
+        <div class="map-filter-row">
+            <button class="filter-btn active" data-type="hospital" onclick="setFilter(this,'hospital')">🏥 Hospitals</button>
+            <button class="filter-btn" data-type="doctor" onclick="setFilter(this,'doctor')">👨‍⚕️ Doctors</button>
+            <button class="filter-btn" data-type="physiotherapist" onclick="setFilter(this,'physiotherapist')">🫁 Pulmonology</button>
+            <button class="filter-btn" data-type="pharmacy" onclick="setFilter(this,'pharmacy')">💊 Pharmacy</button>
+        </div>
+
+        <div id="mapStatus" class="map-status">Enter a location above or allow location access to find providers near you.</div>
+        <div id="map">
+            <div class="map-placeholder">
+                <div class="map-icon">🗺️</div>
+                <p>MAP WILL LOAD HERE</p>
+                <p style="font-size:0.75rem;">Search or use My Location to find care near you</p>
+            </div>
+        </div>
+
+        <div id="mapResultsList" class="map-results-list"></div>
     </div>
 
-    <!-- TREATMENT EXPLAINER -->
+    <!-- TREATMENT & MEDICATION GUIDE -->
     <div class="treat-card">
-        <div class="treat-title">Treatment & Medication Guide</div>
-        <ul>
-            <li><strong>Inhalers:</strong> Help open airways and reduce inflammation</li>
-            <li><strong>COPD Management:</strong> Long-term airway disease treated with bronchodilators and rehab</li>
-            <li><strong>Pulmonologist:</strong> Lung specialist who manages chronic respiratory disease</li>
-        </ul>
+        <div class="treat-title">Treatment &amp; Medication Guide</div>
+        <div class="treatment-grid">
+            <div class="tx-item">
+                <div class="tx-item-title">💨 Inhalers &amp; Bronchodilators</div>
+                <div class="tx-item-body">Help open airways and reduce inflammation. Short-acting (SABA) for quick relief; long-acting (LABA/LAMA) for daily management.</div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-item-title">🫁 COPD / Spirometry</div>
+                <div class="tx-item-body">Spirometry measures airflow to diagnose obstruction or restriction. COPD is managed with bronchodilators, steroids, and pulmonary rehab.</div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-item-title">🩻 Low-Dose CT (LDCT)</div>
+                <div class="tx-item-body">Recommended for high-risk individuals. LDCT screening detects early lung nodules before symptoms appear — annual screening advised for 50–80-year-old smokers.</div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-item-title">👩‍⚕️ Pulmonologist Referral</div>
+                <div class="tx-item-body">A lung specialist who manages chronic respiratory disease, reads CT/X-rays, and coordinates specialist care including biopsies if needed.</div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-item-title">🧬 Genetic Counselling</div>
+                <div class="tx-item-body">If Alpha-1 Antitrypsin deficiency (AAT) is suspected, a blood test confirms the diagnosis. Augmentation therapy can slow progression.</div>
+            </div>
+            <div class="tx-item">
+                <div class="tx-item-title">🌬️ Pulmonary Rehab</div>
+                <div class="tx-item-body">Supervised exercise and education programme proven to reduce breathlessness, improve quality of life, and cut hospital admissions in COPD patients.</div>
+            </div>
+        </div>
     </div>
 
-    <!-- LIFESTYLE -->
+    <!-- LIFESTYLE ACTION PLAN -->
     <div class="treat-card">
         <div class="treat-title">Lifestyle Action Plan</div>
-        <ul id="lifestyleList"></ul>
+        <ul class="lifestyle-list" id="lifestyleList"></ul>
     </div>
 
-    <!-- PDF -->
+    <!-- DOCTOR SUMMARY / DOWNLOAD -->
     <div class="treat-card">
         <div class="treat-title">Doctor Summary</div>
-        <button class="btn" onclick="downloadPDF()">⬇ Download "Take This To Your Doctor"</button>
+        <div class="disclaimer">
+            ⚠️ <strong>Important:</strong> This treatment pathway is generated by a prototype pre-screening tool and does not constitute medical advice. Always consult a qualified healthcare provider before making clinical decisions.
+        </div>
+        <div id="summaryTable" style="margin-bottom:16px;"></div>
+        <button class="btn btn-primary" onclick="downloadReport()">⬇ Download "Take This To Your Doctor" Report</button>
+        <a href="detection.html"><button class="btn btn-outline" style="margin-top:8px;">← Re-run AI Acoustic Biopsy</button></a>
     </div>
 
 </div>
 
+<footer>
+    <p>&copy; 2026 Global Breath-Link Initiative | Proposed by Ashrita Nagalla &amp; Akhil Nagalla</p>
+    <p style="margin-top:10px; font-size:0.9rem;">📧 Contact us: <a href="mailto:contact@breathlink.org" style="color:#27ae60; text-decoration:none;">contact@breathlink.org</a></p>
+</footer>
+
+<!-- NOTE: Replace YOUR_GOOGLE_MAPS_API_KEY with your real key from console.cloud.google.com
+     Enable: Maps JavaScript API + Places API -->
 <script>
-/* GET SCORE FROM DETECTION PAGE */
-let score = localStorage.getItem("riskScore") || 50;
-document.getElementById("score").textContent = score;
+const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
 
-/* DETERMINE RISK LEVEL */
-let riskText = "";
-let steps = [];
-let lifestyle = [];
+// ══════════════════════════════════════════
+// READ REAL SCORE FROM LOCALSTORAGE
+// (saved by detection.html after cough analysis)
+// ══════════════════════════════════════════
+const rawScore = localStorage.getItem('riskScore');
+let score = rawScore !== null ? parseInt(rawScore) : null;
 
-if (score < 25) {
-    riskText = "Low Risk";
-    steps = ["Routine check-up", "Monitor symptoms"];
-    lifestyle = ["Maintain clean air environment", "Exercise regularly"];
+let riskColor, riskWord, riskDesc, steps, lifestyle;
+
+if (score === null) {
+    // No analysis done yet — show warning, use neutral defaults
+    document.getElementById('noScoreWarning').style.display = 'block';
+    score = 0;
+    riskColor = '#555'; riskWord = 'NO DATA';
+    riskDesc = 'No cough analysis found. Please complete the AI Acoustic Biopsy first.';
+    steps = ['Complete the AI Acoustic Biopsy on the Detection page to get personalised clinical steps.'];
+    lifestyle = [{ icon:'🔬', text:'Run the AI Acoustic Biopsy — record your cough to get a real triage score.' }];
+} else if (score < 25) {
+    riskColor = '#27ae60'; riskWord = 'LOW RISK';
+    riskDesc = 'Your acoustic profile closely matches healthy cough patterns. Continue monitoring and maintain a clean air environment.';
+    steps = [
+        'Schedule a routine GP check-up within the next 12 months.',
+        'Monitor for any new respiratory symptoms — persistent cough, breathlessness, or chest tightness.',
+        'Ensure your home radon levels are tested if you live in a high-risk geological area.',
+        'Maintain your healthy lifestyle and revisit the AI screener annually.',
+    ];
+    lifestyle = [
+        { icon:'🌿', text:'Maintain a clean indoor air environment — use air purifiers where possible.' },
+        { icon:'🏃', text:'Exercise regularly — 150 minutes of moderate aerobic activity per week supports lung health.' },
+        { icon:'🥗', text:'Eat a diet rich in Vitamins A, C, and E to maintain your antioxidant shield.' },
+        { icon:'🚭', text:'Avoid tobacco smoke — even passive exposure raises risk significantly.' },
+    ];
+} else if (score < 50) {
+    riskColor = '#f39c12'; riskWord = 'MILD CONCERN';
+    riskDesc = 'Some acoustic markers suggest mild airway changes. A routine conversation with your GP and some basic tests are recommended.';
+    steps = [
+        'Book an appointment with your GP within the next 4–6 weeks.',
+        'Ask about spirometry (lung function) testing to baseline your airway capacity.',
+        'Discuss your cough history, smoking status, and occupational exposures.',
+        'Consider a chest X-ray if symptoms persist for more than 3 weeks.',
+        'Review and reduce known environmental risk factors.',
+    ];
+    lifestyle = [
+        { icon:'🚭', text:'Quit or reduce smoking — even cutting down significantly reduces lung cancer risk.' },
+        { icon:'😷', text:'Wear an N95 mask in dusty or polluted environments.' },
+        { icon:'🥦', text:'Increase antioxidant intake — broccoli, citrus, nuts, and leafy greens protect airway lining.' },
+        { icon:'💧', text:'Stay well hydrated — helps maintain mucus clearance and ciliary function.' },
+        { icon:'🏠', text:'Test your home for radon gas, especially if you live in a basement or ground-floor unit.' },
+    ];
+} else if (score < 75) {
+    riskColor = '#e67e22'; riskWord = 'MODERATE RISK';
+    riskDesc = 'Your acoustic and symptom profile shows notable indicators. A follow-up with a healthcare provider is strongly advised.';
+    steps = [
+        'Book an urgent GP appointment within 1–2 weeks.',
+        'Request spirometry testing (lung function measurement).',
+        'Ask for a referral to a pulmonologist (lung specialist) for further evaluation.',
+        'Discuss low-dose CT (LDCT) chest imaging eligibility with your doctor.',
+        'Review occupational history — asbestos, silica, or chemical exposures should be disclosed.',
+        'Bring your BreathLink doctor summary printout to your appointment.',
+    ];
+    lifestyle = [
+        { icon:'🚭', text:'Stop smoking immediately — this is the single most impactful action you can take.' },
+        { icon:'🏠', text:'Improve indoor air quality — eliminate cookfire smoke, use ventilation, test for radon.' },
+        { icon:'📋', text:'Keep a symptom diary — record cough frequency, sputum, and breathlessness each day.' },
+        { icon:'🏥', text:'Ask about pulmonary rehabilitation — evidence-based exercise programmes reduce symptoms significantly.' },
+        { icon:'🧘', text:'Manage stress — chronic stress worsens immune function and respiratory symptoms.' },
+        { icon:'💊', text:'Do not self-medicate with inhalers — ensure diagnosis is confirmed before treatment.' },
+    ];
+} else {
+    riskColor = '#e74c3c'; riskWord = 'ELEVATED RISK';
+    riskDesc = 'Multiple acoustic risk markers detected alongside significant symptom burden. Please discuss lung screening with a doctor promptly.';
+    steps = [
+        '⚠️ Seek a GP or urgent care appointment within the next 1–3 days.',
+        'Request low-dose CT (LDCT) chest scan — standard of care for high-risk individuals.',
+        'Demand urgent referral to a pulmonologist or respiratory specialist.',
+        'Disclose full exposure history: smoking (pack-years), occupation, asbestos, radon.',
+        'Discuss Alpha-1 Antitrypsin blood test if family history of lung disease exists.',
+        'If haemoptysis (coughing blood) is present, go to Emergency Department immediately.',
+        'Bring your BreathLink doctor summary and acoustic report to every appointment.',
+    ];
+    lifestyle = [
+        { icon:'🚭', text:'Stop smoking today — contact a cessation clinic or use NRT (nicotine replacement therapy).' },
+        { icon:'🏥', text:'Attend all scheduled follow-ups — do not delay or cancel clinical appointments.' },
+        { icon:'😷', text:'Avoid all occupational and environmental pollutants — use respirator-grade protection if unavoidable.' },
+        { icon:'🥗', text:'Focus on nutrition — malnutrition accelerates lung decline in chronic disease.' },
+        { icon:'💪', text:'Ask about pulmonary rehabilitation — even high-risk patients benefit from supervised exercise.' },
+        { icon:'👨‍👩‍👧', text:'Inform close family — first-degree relatives may also benefit from screening.' },
+    ];
 }
-else if (score < 50) {
-    riskText = "Mild Concern";
-    steps = ["Visit GP", "Consider spirometry"];
-    lifestyle = ["Reduce smoke exposure", "Improve diet"];
-}
-else if (score < 75) {
-    riskText = "Moderate Risk";
-    steps = ["Spirometry test", "Pulmonologist referral", "Chest imaging"];
-    lifestyle = ["Avoid pollutants", "Track symptoms daily"];
-}
-else {
-    riskText = "High Risk";
-    steps = ["LDCT scan", "Urgent specialist referral", "Full lung evaluation"];
-    lifestyle = ["Immediate exposure reduction", "Strict medical follow-up"];
-}
 
-document.getElementById("riskText").textContent = riskText;
+// Apply to DOM
+document.getElementById('score').textContent = rawScore !== null ? score : '--';
+document.getElementById('score').style.color = riskColor;
+document.getElementById('riskBadge').textContent = riskWord;
+document.getElementById('riskBadge').style.color = riskColor;
+document.getElementById('riskBadge').style.borderColor = riskColor + '55';
+document.getElementById('riskBadge').style.background = riskColor + '18';
+document.getElementById('riskDesc').textContent = riskDesc;
 
-/* RENDER LISTS */
-document.getElementById("stepsList").innerHTML =
-    steps.map(s => `<li>${s}</li>`).join("");
+document.getElementById('stepsList').innerHTML = steps.map((s, i) => `
+    <li><div class="step-num">${i+1}</div><span>${s}</span></li>`).join('');
 
-document.getElementById("lifestyleList").innerHTML =
-    lifestyle.map(s => `<li>${s}</li>`).join("");
+document.getElementById('lifestyleList').innerHTML = lifestyle.map(l => `
+    <li><span class="ls-icon">${l.icon}</span><span>${l.text}</span></li>`).join('');
 
-/* FIND CARE (simple placeholder) */
-function findCare() {
-    let loc = document.getElementById("locationInput").value;
-    document.getElementById("careResults").innerHTML =
-        "Showing providers near: <strong>" + loc + "</strong><br>• Local hospital<br>• Pulmonology clinic<br>• GP center";
-}
+document.getElementById('summaryTable').innerHTML = `
+    <div class="summary-row"><span class="key">Triage Score</span><span class="val" style="color:${riskColor};font-weight:700;">${rawScore !== null ? score : 'N/A'}/100 — ${riskWord}</span></div>
+    <div class="summary-row"><span class="key">Assessment</span><span class="val">${riskDesc}</span></div>
+    <div class="summary-row"><span class="key">Clinical Actions</span><span class="val">${steps.length} steps recommended</span></div>
+    <div class="summary-row"><span class="key">Lifestyle Changes</span><span class="val">${lifestyle.length} changes identified</span></div>
+    <div class="summary-row"><span class="key">Date</span><span class="val">${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
 
-/* DOWNLOAD PDF */
-function downloadPDF() {
-    let text = `
-Global Breath-Link Report
+// ══════════════════════════════════════════
+// DOWNLOAD REPORT
+// ══════════════════════════════════════════
+function downloadReport() {
+    const text = `GLOBAL BREATH-LINK INITIATIVE — DOCTOR SUMMARY
+================================================
+Date: ${new Date().toLocaleDateString()}
+Tool: Global Breath-Link Initiative (Prototype v0.1)
 
-Risk Score: ${score}
-Risk Level: ${riskText}
+TRIAGE RESULT
+-------------
+Score:      ${rawScore !== null ? score : 'N/A'}/100
+Risk Level: ${riskWord}
+Assessment: ${riskDesc}
 
-Recommended Steps:
-${steps.join("\n")}
+RECOMMENDED CLINICAL STEPS
+---------------------------
+${steps.map((s, i) => `${i+1}. ${s}`).join('\n')}
 
-Lifestyle Plan:
-${lifestyle.join("\n")}
+LIFESTYLE ACTION PLAN
+---------------------
+${lifestyle.map(l => `• ${l.text}`).join('\n')}
+
+DISCLAIMER
+----------
+This is a prototype pre-screening tool, NOT a medical diagnosis.
+Please share with a qualified healthcare provider.
+Proposed by: Ashrita Nagalla & Akhil Nagalla
 `;
+    const blob = new Blob([text], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `BreathLink_TreatmentPlan_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+}
 
-    let blob = new Blob([text], { type: "text/plain" });
-    let link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "breathlink_report.txt";
-    link.click();
+// ══════════════════════════════════════════
+// GOOGLE MAPS INTEGRATION
+// ══════════════════════════════════════════
+let map, placesService, currentMarkers = [], infoWindow;
+let activeFilter = 'hospital';
+let mapsLoaded = false;
+
+function setFilter(btn, type) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = type;
+    if (mapsLoaded && map) {
+        const center = map.getCenter();
+        searchNearby(center.lat(), center.lng());
+    }
+}
+
+function loadGoogleMaps() {
+    if (mapsLoaded) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+        if (GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY') {
+            reject(new Error('no_key'));
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.onload = () => { mapsLoaded = true; resolve(); };
+        script.onerror = () => reject(new Error('load_failed'));
+        document.head.appendChild(script);
+    });
+}
+
+function initMap(lat, lng) {
+    const container = document.getElementById('map');
+    container.innerHTML = '';
+
+    map = new google.maps.Map(container, {
+        center: { lat, lng },
+        zoom: 13,
+        styles: [
+            { elementType:'geometry', stylers:[{color:'#0f1c2e'}] },
+            { elementType:'labels.text.stroke', stylers:[{color:'#0f1c2e'}] },
+            { elementType:'labels.text.fill', stylers:[{color:'#746855'}] },
+            { featureType:'administrative.locality', elementType:'labels.text.fill', stylers:[{color:'#d59563'}] },
+            { featureType:'road', elementType:'geometry', stylers:[{color:'#38414e'}] },
+            { featureType:'road', elementType:'geometry.stroke', stylers:[{color:'#212a37'}] },
+            { featureType:'road', elementType:'labels.text.fill', stylers:[{color:'#9ca5b3'}] },
+            { featureType:'road.highway', elementType:'geometry', stylers:[{color:'#746855'}] },
+            { featureType:'water', elementType:'geometry', stylers:[{color:'#17263c'}] },
+            { featureType:'water', elementType:'labels.text.fill', stylers:[{color:'#515c6d'}] },
+            { featureType:'poi', elementType:'labels.text.fill', stylers:[{color:'#d59563'}] },
+            { featureType:'poi.park', elementType:'geometry', stylers:[{color:'#263c3f'}] },
+            { featureType:'transit', elementType:'geometry', stylers:[{color:'#2f3948'}] },
+        ]
+    });
+
+    infoWindow = new google.maps.InfoWindow();
+    placesService = new google.maps.places.PlacesService(map);
+
+    new google.maps.Marker({
+        position: { lat, lng },
+        map,
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 9,
+            fillColor: '#27ae60',
+            fillOpacity: 1,
+            strokeColor: '#fff',
+            strokeWeight: 2
+        },
+        title: 'Your Location'
+    });
+
+    searchNearby(lat, lng);
+}
+
+function searchNearby(lat, lng) {
+    if (!placesService) return;
+    clearMarkers();
+    document.getElementById('mapResultsList').innerHTML = '';
+    setMapStatus('loading', '⚙ Searching for nearby providers...');
+
+    const typeMap = {
+        hospital:        { keyword:'hospital',                 icon:'🏥', color:'#e74c3c', badge:'Hospital',    badgeColor:'#e74c3c' },
+        doctor:          { keyword:'doctor clinic',            icon:'👨‍⚕️', color:'#1a6cff', badge:'Clinic',      badgeColor:'#1a6cff' },
+        physiotherapist: { keyword:'pulmonologist respiratory', icon:'🫁', color:'#f39c12', badge:'Pulmonology', badgeColor:'#f39c12' },
+        pharmacy:        { keyword:'pharmacy',                 icon:'💊', color:'#27ae60', badge:'Pharmacy',    badgeColor:'#27ae60' },
+    };
+
+    const cfg = typeMap[activeFilter] || typeMap.hospital;
+
+    placesService.nearbySearch({
+        location: { lat, lng },
+        radius: 5000,
+        keyword: cfg.keyword,
+        type: activeFilter === 'pharmacy' ? 'pharmacy' : undefined,
+    }, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+            setMapStatus('success', `✓ Found ${results.length} providers nearby`);
+            results.slice(0, 8).forEach((place, i) => addResult(place, cfg, i));
+        } else {
+            setMapStatus('error', '⚠ No results found — try a different filter or location.');
+            document.getElementById('mapResultsList').innerHTML = `<div style="color:#555; font-size:0.85rem; text-align:center; padding:16px;">No providers found for this filter nearby. Try a different category or widen your search.</div>`;
+        }
+    });
+}
+
+function addResult(place, cfg, index) {
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+
+    const marker = new google.maps.Marker({
+        position: { lat, lng },
+        map,
+        label: { text: String(index + 1), color:'white', fontWeight:'bold', fontSize:'12px' },
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 16,
+            fillColor: cfg.color,
+            fillOpacity: 0.9,
+            strokeColor: '#fff',
+            strokeWeight: 2
+        },
+        title: place.name,
+        animation: google.maps.Animation.DROP
+    });
+
+    marker.addListener('click', () => {
+        infoWindow.setContent(`
+            <div style="font-family:'Segoe UI',sans-serif; padding:4px; max-width:220px;">
+                <strong style="color:#333;">${place.name}</strong><br>
+                <span style="color:#777; font-size:0.8rem;">${place.vicinity || ''}</span><br>
+                ${place.rating ? `<span style="color:#f39c12;">★ ${place.rating}</span> ` : ''}
+                ${place.opening_hours?.isOpen?.() ? '<span style="color:#27ae60; font-size:0.8rem;">Open now</span>' : ''}
+            </div>`);
+        infoWindow.open(map, marker);
+    });
+
+    currentMarkers.push(marker);
+
+    const div = document.createElement('div');
+    div.className = 'map-result-item';
+    div.innerHTML = `
+        <div class="result-icon">${cfg.icon}</div>
+        <div style="flex:1;">
+            <div class="result-name">${index + 1}. ${place.name}</div>
+            <div class="result-address">${place.vicinity || 'Address not available'}</div>
+            ${place.rating ? `<div class="result-distance" style="color:#f39c12;">★ ${place.rating} / 5</div>` : ''}
+            <span class="result-badge" style="background:${cfg.badgeColor}22; color:${cfg.badgeColor}; border:1px solid ${cfg.badgeColor}44;">${cfg.badge}</span>
+            ${place.opening_hours?.isOpen?.() ? '<span class="result-badge" style="background:#27ae6022; color:#27ae60; border:1px solid #27ae6044; margin-left:4px;">Open Now</span>' : ''}
+        </div>`;
+    div.onclick = () => {
+        map.setCenter({ lat, lng });
+        map.setZoom(16);
+        google.maps.event.trigger(marker, 'click');
+    };
+    document.getElementById('mapResultsList').appendChild(div);
+}
+
+function clearMarkers() {
+    currentMarkers.forEach(m => m.setMap(null));
+    currentMarkers = [];
+}
+
+function setMapStatus(type, msg) {
+    const el = document.getElementById('mapStatus');
+    el.className = `map-status ${type}`;
+    el.textContent = msg;
+}
+
+function showNoKeyMessage() {
+    const container = document.getElementById('map');
+    container.innerHTML = `
+        <div class="map-placeholder">
+            <div class="map-icon">🗺️</div>
+            <p style="color:#f39c12; font-weight:bold;">Google Maps API Key Required</p>
+            <p style="font-size:0.8rem; color:#666; max-width:320px; text-align:center; line-height:1.6;">
+                Add your Google Maps API key in treatment.html.<br>
+                Get a free key at <strong style="color:#1a6cff;">console.cloud.google.com</strong><br>
+                Enable: Maps JavaScript API + Places API
+            </p>
+        </div>`;
+    setMapStatus('error', '⚠ No API key set — see instructions inside treatment.html');
+    showFallbackResults();
+}
+
+function showFallbackResults() {
+    const loc = document.getElementById('locationInput').value || 'your area';
+    document.getElementById('mapResultsList').innerHTML = `
+        <div style="color:#555; font-size:0.82rem; padding:12px; background:#060e1a; border:1px solid rgba(255,255,255,0.05); border-radius:10px; line-height:1.7;">
+            <strong style="color:#888;">Suggested search links for ${loc}:</strong><br>
+            <a href="https://www.google.com/maps/search/hospital+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">🏥 Hospitals near ${loc}</a><br>
+            <a href="https://www.google.com/maps/search/pulmonologist+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">🫁 Pulmonologists near ${loc}</a><br>
+            <a href="https://www.google.com/maps/search/respiratory+clinic+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">🔬 Respiratory clinics near ${loc}</a><br>
+            <a href="https://www.google.com/maps/search/pharmacy+near+${encodeURIComponent(loc)}" target="_blank" style="color:#1a6cff;">💊 Pharmacies near ${loc}</a>
+        </div>`;
+}
+
+async function findCare() {
+    const loc = document.getElementById('locationInput').value.trim();
+    if (!loc) { setMapStatus('error', '⚠ Please enter a location to search.'); return; }
+    setMapStatus('loading', '⚙ Geocoding location...');
+    try {
+        await loadGoogleMaps();
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: loc }, (results, status) => {
+            if (status === 'OK') {
+                const pos = results[0].geometry.location;
+                initMap(pos.lat(), pos.lng());
+            } else {
+                setMapStatus('error', '⚠ Location not found. Try a more specific address.');
+                showFallbackResults();
+            }
+        });
+    } catch (e) {
+        if (e.message === 'no_key') showNoKeyMessage();
+        else { setMapStatus('error', '⚠ Maps failed to load.'); showFallbackResults(); }
+    }
+}
+
+async function useMyLocation() {
+    if (!navigator.geolocation) {
+        setMapStatus('error', '⚠ Geolocation not supported by your browser.');
+        return;
+    }
+    setMapStatus('loading', '⚙ Getting your location...');
+    navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        document.getElementById('locationInput').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        try {
+            await loadGoogleMaps();
+            initMap(lat, lng);
+        } catch (e) {
+            if (e.message === 'no_key') showNoKeyMessage();
+            else { setMapStatus('error', '⚠ Maps failed to load.'); showFallbackResults(); }
+        }
+    }, () => {
+        setMapStatus('error', '⚠ Location access denied. Please enter your location manually.');
+    });
 }
 </script>
 
