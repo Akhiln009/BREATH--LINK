@@ -151,6 +151,7 @@
     <a href="index.html"     style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">🏠 Home</a>
     <a href="index.html" style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">🫁 Awareness Simulator</a>
     <a href="detection.html" style="color:var(--secondary); text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3);">🔬 AI Acoustic Biopsy</a>
+    <a href="treatment.html" style="color:#888; text-decoration:none; padding:6px 14px; border-radius:6px; font-size:0.85rem;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">💊 Treatment Plan</a>
 </div>
 
 <div id="detectionContent">
@@ -339,7 +340,8 @@
             ⚠️ <strong>Important:</strong> This is a research prototype pre-screening tool, not a medical diagnosis. The KNN classifier uses published acoustic feature ranges as a reference — it cannot replace clinical evaluation. Always consult a qualified healthcare provider.
         </div>
 
-        <button class="det-btn det-btn-primary" onclick="downloadSummary()">⬇ Download Doctor Summary</button>
+        <button class="det-btn det-btn-primary" onclick="goToTreatment()">▶ View My Treatment Plan →</button>
+        <button class="det-btn det-btn-primary" style="margin-top:8px; background:#1a4a7c;" onclick="downloadSummary()">⬇ Download Doctor Summary</button>
         <button class="det-btn det-btn-outline" onclick="restart()">↺ New Analysis</button>
     </div>
 
@@ -678,6 +680,10 @@ function runAnalysis() {
 function showResults() {
     goTo(4);
     const score = computeScore();
+
+    // ── SAVE SCORE TO LOCALSTORAGE SO TREATMENT.HTML CAN READ IT ──
+    localStorage.setItem('riskScore', score);
+
     const knn   = lastKNN;
 
     let riskColor, riskDesc;
@@ -788,6 +794,10 @@ function showResults() {
         </div>`;
 }
 
+function goToTreatment() {
+    window.location.href = 'treatment.html';
+}
+
 function goTo(n) {
     document.querySelectorAll('.det-panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
     document.querySelectorAll('.step').forEach((s,i) => {
@@ -868,5 +878,7 @@ References: Orlandic et al. 2021 (COUGHVID, Nature Scientific Data);
     a.click();
 }
 </script>
+</body>
+</html>
 </body>
 </html>
