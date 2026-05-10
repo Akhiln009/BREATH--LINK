@@ -1,132 +1,367 @@
-:root{
-    --primary:#1a4a7c;
-    --secondary:#27ae60;
-    --bg:#fdfdfd;
-    --accent:#f39c12;
-    --dark:#0a0a0a;
-    --danger:#e74c3c;
+// ============================================
+// script.js — All simulator, quiz & certificate logic
+// ============================================
+
+const canvas = document.getElementById("lungCanvas");
+const ctx = canvas.getContext("2d");
+let particles = [];
+let currentType = 'radon';
+let simState = { exposure: 0, targetExposure: 0, breathTime: 0 };
+let progress = { healthy: false, low: false, medium: false, high: false };
+
+// ── PARTICLE CLASS ──
+class Particle {
+    constructor() { this.reset(); }
+    reset() {
+        const s = pathologyData[currentType] || pathologyData['radon'];
+        this.x = canvas.width / 2; this.y = 10;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = Math.random() * s.speed + 2;
+        this.reachedLungs = false;
+    }
+    update() {
+        this.x += this.vx; this.y += this.vy;
+        if (this.y > 180 && !this.reachedLungs) {
+            this.vx += (this.x < canvas.width/2 ? -1.5 : 1.5);
+            this.reachedLungs = true;
+        }
+        if (this.y > 480) this.reset();
+    }
+    draw() {
+        ctx.fillStyle = (pathologyData[currentType] || pathologyData['radon']).color;
+        ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI * 2); ctx.fill();
+    }
 }
 
+// ── DRAW ANATOMY ──
+function drawAnatomy(scale, exp) {
+    const cx = canvas.width / 2; 
+    const cy = 140; // Adjusted slightly from 280 to maintain vertical centering
+    const s = pathologyData[currentType] || pathologyData['radon'];
+    let r = 255 - (exp * 210); 
+    let g = 165 - (exp * 140); 
+    let b = 175 - (exp * 150);
 
-body{ font-family:'Segoe UI',Tahoma,sans-serif; line-height:1.6; margin:0; background:var(--bg); color:#333; }
-.container{ max-width:1000px; margin:auto; padding:20px; }
-header{ background:var(--primary); color:#fff; padding:60px 20px; text-align:center; }
-header h1{ margin:0; font-size:2.5rem; }
-section{ padding:40px 0; border-bottom:1px solid #ddd; }
+    const drawSide = (side) => {
+        ctx.save(); 
+        // Halved the horizontal offset (110 -> 55)
+        ctx.translate(cx + (side * 55), cy); 
+        const lScale = scale * (1 - (exp * 0.18)); 
+        ctx.scale(lScale * side, lScale);
 
+        // Halved all Bezier curve coordinates
+        ctx.beginPath(); 
+        ctx.moveTo(0, -60); 
+        ctx.bezierCurveTo(80, -60, 97.5, 80, 0, 100);
+        ctx.bezierCurveTo(-35, 100, -20, -30, 0, -60);
+        
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; 
+        ctx.fill();
 
-/* VIEWING AREA */
-.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
-.card{ background:#fff; padding:25px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); border-top:5px solid var(--secondary); }
-.tag-cloud{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-.tag{ background:#e8f4fd; color:#1a4a7c; padding:6px 12px; border-radius:15px; font-size:0.85rem; font-weight:bold; cursor:pointer; transition: 0.2s; }
-.tag:hover{ background:#1a4a7c; color:white; }
+        if (exp > 0.05) {
+            ctx.globalAlpha = exp; 
+            ctx.fillStyle = s.stain;
+            for(let i = 0; i < 15; i++) {
+                ctx.beginPath(); 
+                // Halved the spread (60->30, 90->45) and the base radius/growth (5->2.5, 20->10)
+                ctx.arc(Math.sin(i*5)*30, Math.cos(i*3)*45, 2.5 + (exp*10), 0, Math.PI*2); 
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+    };
 
-
-/* SIMULATOR STYLES */
-#simulator{ display:none; background:var(--dark); color:white; padding:40px 20px; text-align:center; }
-.viewer { max-width:300px; margin:10px auto; background: #000; border-radius: 20px; position: relative; border: 0px solid #333; }
-canvas { display: block; max-width: 100%; height: auto; }
-
-
-.healthbar{ width:280px; height:20px; background:#333; margin:20px auto; border-radius:10px; overflow:hidden; }
-.healthfill{ height:100%; width:100%; background:#27ae60; transition: 1s; }
-
-
-.controls button{ padding:10px 16px; margin:6px; border:none; border-radius:6px; background:#444; color:white; cursor:pointer; }
-.controls button.active { background: var(--secondary); }
-
-
-/* DETAILED INFO PANEL */
-.edu-panel {
-    max-width: 700px; margin: 20px auto; background: #1a1a1a; padding: 25px;
-    border-radius: 12px; text-align: left; border-left: 5px solid var(--secondary);
-    max-height: 400px; overflow-y: auto;
+    drawSide(-1); 
+    drawSide(1);
+    
+    ctx.fillStyle = "#761818"; 
+    // Halved width (36->18), height (140->70), and adjusted Y (40->150) to connect perfectly
+    ctx.fillRect(cx - 9, 10, 15, 70); 
 }
 
-
-.unlock-msg { color: var(--accent); font-weight: bold; margin: 15px 0; font-size: 0.9rem; }
-.quizBtn{ display:none; background:var(--accent); padding:15px 30px; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer; margin-top:20px; }
-
-
-/* QUIZ MODAL */
-#quizModal {
-    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.95); z-index:2000; justify-content:center; align-items:center;
-    padding: 20px;
+// ── ANIMATION LOOP ──
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 1. Reduced exposure transition speed by 50% (0.04 -> 0.02)
+    simState.exposure += (simState.targetExposure - simState.exposure) * 0.02;
+    
+    // 2. Reduced breathing speed by 50% (0.04 -> 0.02 and 0.025 -> 0.0125)
+    simState.breathTime += (0.02 - (simState.exposure * 0.0125));
+    
+    // 3. Reduced breathing expansion (scale amplitude) by 50% (0.03 -> 0.015)
+    const scale = 1 + (Math.sin(simState.breathTime) * 0.015);
+    
+    drawAnatomy(scale, simState.exposure);
+    
+    if (simState.targetExposure > 0) {
+        // 4. Reduced maximum particle density by 50% (200 -> 100)
+        if (particles.length < simState.targetExposure * 100) particles.push(new Particle());
+    } else { 
+        particles = []; 
+    }
+    
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
 }
-.quiz-content {
-    background:#fff; padding:30px; border-radius:15px; max-width:600px; width:90%;
-    color:#333; position: relative; display: flex; flex-direction: column; max-height: 90vh;
-}
-#quizHeader { color: var(--primary); margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee;}
-#quizBody { overflow-y: auto; flex-grow: 1; padding-right: 15px; margin: 20px 0; }
-.quiz-q { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+animate();
 
-
-#quizResults { display:none; padding:15px; border-radius:8px; font-weight:bold; margin-bottom:10px; text-align:center;}
-
-
-/* NAME INPUT SECTION */
-#nameSection {
-    display: none;
-    background: #f0f8f0;
-    border: 2px solid var(--secondary);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 15px 0;
-    text-align: center;
-}
-#nameSection h3 { color: var(--primary); margin: 0 0 5px 0; font-size: 1.1rem; }
-#nameSection p { color: #555; margin: 0 0 15px 0; font-size: 0.9rem; }
-.name-inputs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.name-inputs input {
-    padding: 10px 14px; border: 2px solid #ccc; border-radius: 8px;
-    font-size: 1rem; width: 160px; transition: border-color 0.2s;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-}
-.name-inputs input:focus { outline: none; border-color: var(--secondary); }
-.name-inputs input.input-error { border-color: var(--danger); animation: shake 0.3s ease; }
-
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+// ── UI LOGIC ──
+function openSim(type) {
+    currentType = type; particles = []; progress = { healthy: false, low: false, medium: false, high: false };
+    document.getElementById("mainContent").style.display = "none";
+    document.getElementById("simulator").style.display = "block";
+    updateUI();
+    setExposure('healthy');
 }
 
-
-#nameError { color: var(--danger); font-size: 0.85rem; margin-top: 8px; display: none; }
-.cert-btn { display:none; background:#2c3e50; color:white; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width:100%; margin-top:10px;}
-.close-quiz { background:none; border:none; color:#999; cursor:pointer; text-align:center; width:100%;}
-
-
-footer{ text-align:center; padding:40px; background:#222; color:#eee; }
-/* ===== GRID FIX (SAFE) ===== */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+function updateUI() {
+    const s = pathologyData[currentType] || pathologyData['radon'];
+    document.getElementById("simTitle").innerText = currentType.toUpperCase() + " CLINICAL ANALYSIS";
+    document.getElementById("eduHeading").innerText = s.heading;
+    document.getElementById("infoText").innerText = s.info;
+    document.getElementById("specMech").innerHTML = s.mech;
+    document.getElementById("specProg").innerHTML = s.prog;
 }
 
+function setExposure(level) {
+    progress[level] = true;
+    document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+    document.getElementById('step-' + level).classList.add('active');
 
-/* ===== CARD ALIGNMENT FIX ===== */
-.treatment-card {
-    grid-column: span 2;
-    max-width: 520px;
-    justify-self: center;
+    let target, health, color;
+    if(level==="healthy")     { target=0;    health=100; color="#27ae60"; }
+    else if(level==="low")    { target=0.25; health=75;  color="#f1c40f"; }
+    else if(level==="medium") { target=0.55; health=45;  color="#e67e22"; }
+    else if(level==="high")   { target=1.0;  health=15;  color="#e74c3c"; }
+
+    simState.targetExposure = target;
+    document.getElementById("healthFill").style.width = health + "%";
+    document.getElementById("healthFill").style.background = color;
+    checkUnlockStatus();
 }
 
+function checkUnlockStatus() {
+    if(progress.healthy && progress.low && progress.medium && progress.high) {
+        document.getElementById("lockMessage").style.display = "none";
+        document.getElementById("quizButton").style.display = "inline-block";
+    }
+}
 
-/* ===== MOBILE FIX ===== */
-@media (max-width: 700px) {
-    .grid {
-        grid-template-columns: 1fr;
+function goBack() {
+    document.getElementById("simulator").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+}
+
+// ── QUIZ LOGIC ──
+function startQuiz() {
+    const quiz = (pathologyData[currentType] || {quiz:[]}).quiz;
+    const body = document.getElementById("quizBody");
+    const results = document.getElementById("quizResults");
+    const header = document.getElementById("quizHeader");
+
+    header.innerText = currentType.toUpperCase() + " CERTIFICATION EXAM";
+    results.style.display = "none";
+    document.getElementById("nameSection").style.display = "none";
+    document.getElementById("submitQuizBtn").style.display = "block";
+    document.getElementById("downloadCertBtn").style.display = "none";
+    document.getElementById("firstNameInput").value = "";
+    document.getElementById("lastNameInput").value = "";
+    document.getElementById("nameError").style.display = "none";
+
+    let html = "";
+    quiz.forEach((q, i) => {
+        html += `<div class="quiz-q">
+            <p><strong>${i+1}. ${q.q}</strong></p>`;
+
+        // Hint button + collapsible hint box
+        if (q.hint) {
+            html += `
+            <div style="margin: 6px 0 10px 0;">
+                <button
+                    type="button"
+                    onclick="toggleHint(${i})"
+                    style="background:none; border:1px solid #f39c12; color:#f39c12; padding:3px 12px; border-radius:12px; font-size:0.78rem; cursor:pointer; font-weight:bold;">
+                    💡 Show Hint
+                </button>
+                <div id="hint-${i}" style="display:none; margin-top:8px; background:#fffbf0; border-left:3px solid #f39c12; padding:8px 12px; border-radius:0 6px 6px 0; font-size:0.85rem; color:#7d5a00;">
+                    ${q.hint}
+                </div>
+            </div>`;
+        }
+
+        q.o.forEach(opt => {
+            html += `<label style="display:block;margin:4px 0;"><input type="radio" name="q${i}" value="${opt}"> ${opt}</label>`;
+        });
+        html += `</div>`;
+    });
+    body.innerHTML = html;
+    document.getElementById("quizModal").style.display = "flex";
+}
+
+function toggleHint(i) {
+    const hintBox = document.getElementById("hint-" + i);
+    const btn = hintBox.previousElementSibling;
+    if (hintBox.style.display === "none") {
+        hintBox.style.display = "block";
+        btn.textContent = "💡 Hide Hint";
+        btn.style.background = "#fff8e6";
+    } else {
+        hintBox.style.display = "none";
+        btn.textContent = "💡 Show Hint";
+        btn.style.background = "none";
+    }
+}
+
+function submitQuiz() {
+    const quiz = (pathologyData[currentType] || {quiz:[]}).quiz;
+    let score = 0;
+    quiz.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if(selected && selected.value === q.a) score++;
+    });
+
+    const results = document.getElementById("quizResults");
+    results.style.display = "block";
+
+    if(score >= 8) {
+        results.style.background = "#d4edda";
+        results.style.color = "#155724";
+        results.innerHTML = `🎓 PASSED: ${score}/10! You have demonstrated clinical mastery of ${currentType} pathology.`;
+        document.getElementById("submitQuizBtn").style.display = "none";
+        document.getElementById("nameSection").style.display = "block";
+        document.getElementById("downloadCertBtn").style.display = "block";
+    } else {
+        results.style.background = "#f8d7da";
+        results.style.color = "#721c24";
+        results.innerHTML = `❌ FAILED: ${score}/10. You need 8/10 to pass. Review the detailed sub-topics and try again!`;
+    }
+}
+
+function closeQuiz() { document.getElementById("quizModal").style.display = "none"; }
+
+// ── CERTIFICATE LOGIC ──
+function generateCertificate() {
+    const firstName = document.getElementById("firstNameInput").value.trim();
+    const lastName  = document.getElementById("lastNameInput").value.trim();
+    const nameError  = document.getElementById("nameError");
+    const firstInput = document.getElementById("firstNameInput");
+    const lastInput  = document.getElementById("lastNameInput");
+
+    if (!firstName || !lastName) {
+        nameError.style.display = "block";
+        if (!firstName) firstInput.classList.add("input-error");
+        else firstInput.classList.remove("input-error");
+        if (!lastName) lastInput.classList.add("input-error");
+        else lastInput.classList.remove("input-error");
+        setTimeout(() => {
+            firstInput.classList.remove("input-error");
+            lastInput.classList.remove("input-error");
+        }, 400);
+        return;
     }
 
+    nameError.style.display = "none";
+    const fullName = firstName + " " + lastName;
+    const c = document.getElementById("certCanvas");
+    const x = c.getContext("2d");
 
-    .treatment-card {
-        grid-column: span 1;
-        max-width: 100%;
+    // Background
+    x.fillStyle = "#fffdf5";
+    x.fillRect(0, 0, 900, 650);
+
+    // Decorative background pattern
+    x.globalAlpha = 0.04;
+    x.fillStyle = "#1a4a7c";
+    for (let i = 0; i < 900; i += 40) {
+        for (let j = 0; j < 650; j += 40) {
+            x.beginPath(); x.arc(i, j, 15, 0, Math.PI * 2); x.fill();
+        }
     }
+    x.globalAlpha = 1;
+
+    // Borders
+    x.strokeStyle = "#1a4a7c"; x.lineWidth = 18; x.strokeRect(12, 12, 876, 626);
+    x.strokeStyle = "#c9a227"; x.lineWidth = 4;  x.strokeRect(28, 28, 844, 594);
+    x.strokeStyle = "#1a4a7c"; x.lineWidth = 1.5; x.strokeRect(36, 36, 828, 578);
+
+    // Corner ornaments
+    const drawCorner = (cx, cy, angle) => {
+        x.save(); x.translate(cx, cy); x.rotate(angle);
+        x.strokeStyle = "#c9a227"; x.lineWidth = 2;
+        x.beginPath(); x.moveTo(0, 0); x.lineTo(30, 0); x.moveTo(0, 0); x.lineTo(0, 30); x.stroke();
+        x.restore();
+    };
+    drawCorner(36, 36, 0);
+    drawCorner(864, 36, Math.PI / 2);
+    drawCorner(864, 614, Math.PI);
+    drawCorner(36, 614, -Math.PI / 2);
+
+    // Header ribbon
+    x.fillStyle = "#1a4a7c";
+    x.fillRect(0, 55, 900, 75);
+    x.textAlign = "center";
+    x.fillStyle = "#ffffff";
+    x.font = "bold 28px Georgia, serif";
+    x.fillText("GLOBAL BREATH-LINK INITIATIVE", 450, 100);
+
+    // Subtitle
+    x.fillStyle = "#c9a227";
+    x.font = "italic 15px Georgia, serif";
+    x.fillText("Certificate of Clinical Competency", 450, 170);
+    x.strokeStyle = "#c9a227"; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(250, 180); x.lineTo(650, 180); x.stroke();
+
+    // Body text
+    x.fillStyle = "#444";
+    x.font = "16px Georgia, serif";
+    x.fillText("This document certifies that", 450, 220);
+
+    // Recipient name
+    x.fillStyle = "#1a4a7c";
+    x.font = "bold 48px Georgia, serif";
+    x.fillText(fullName, 450, 290);
+    const nameWidth = x.measureText(fullName).width;
+    x.strokeStyle = "#c9a227"; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(450 - nameWidth/2, 302); x.lineTo(450 + nameWidth/2, 302); x.stroke();
+
+    // Achievement text
+    x.fillStyle = "#444";
+    x.font = "16px Georgia, serif";
+    x.fillText("has successfully completed advanced pathological simulation", 450, 340);
+    x.fillText("and diagnostic training for:", 450, 365);
+
+    // Pathology type
+    x.fillStyle = "#27ae60";
+    x.font = "bold 36px Arial, sans-serif";
+    x.fillText(currentType.toUpperCase() + " PATHOLOGY", 450, 420);
+
+    // Divider
+    x.strokeStyle = "#ddd"; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(100, 450); x.lineTo(800, 450); x.stroke();
+
+    // Footer info
+    x.fillStyle = "#666";
+    x.font = "13px Arial, sans-serif";
+    x.fillText("Issued by the Global Breath-Link Initiative", 450, 480);
+    x.fillText("Date: " + new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'}), 450, 502);
+
+    // Official seal
+    const sx = 450, sy = 565;
+    x.beginPath(); x.arc(sx, sy, 48, 0, Math.PI*2);
+    x.fillStyle = "#c9a227"; x.fill();
+    x.beginPath(); x.arc(sx, sy, 40, 0, Math.PI*2);
+    x.fillStyle = "#27ae60"; x.fill();
+    x.beginPath(); x.arc(sx, sy, 34, 0, Math.PI*2);
+    x.strokeStyle = "#fff"; x.lineWidth = 2; x.stroke();
+    x.fillStyle = "#fff";
+    x.font = "bold 9px Arial, sans-serif";
+    x.fillText("GLOBAL BREATH-LINK", sx, sy - 7);
+    x.fillText("✦ OFFICIAL SEAL ✦", sx, sy + 8);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = 'BreathLink_Certificate_' + currentType + '_' + firstName + '_' + lastName + '.png';
+    link.href = c.toDataURL('image/png');
+    link.click();
 }
